@@ -11,9 +11,12 @@ public class SeedDataController : ControllerBase
 {
     private readonly AppDbContext _context;
 
-    public SeedDataController(AppDbContext context)
+    private readonly ILogger<SeedDataController> _logger;
+
+    public SeedDataController(AppDbContext context, ILogger<SeedDataController> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     /// <summary>
@@ -132,6 +135,7 @@ public class SeedDataController : ControllerBase
                     CreatedAt = createdAtBase,
                     UpdatedAt = submittedAtBase
                 };
+                _logger.LogInformation($"Creating registration {regCode} with status: {status}");
                 _context.Registrations.Add(reg);
                 await _context.SaveChangesAsync();
 
@@ -167,7 +171,18 @@ public class SeedDataController : ControllerBase
                 _context.Documents.Add(doc);
 
                 // Thêm SLA Tracking
-                var slaStatus = status == "DRAFT" ? "PENDING" : (status == "APPROVED" || status == "REJECTED" ? "COMPLETED" : "IN_PROGRESS");
+                var slaStatus = status switch
+                {
+                    "DRAFT" => "IN_PROGRESS",
+                    "SUBMITTED" => "IN_PROGRESS",
+                    "UNDER_REVIEW" => "IN_PROGRESS",
+                    "NEED_MORE_INFO" => "IN_PROGRESS",
+                    "APPROVED" => "COMPLETED",
+                    "REJECTED" => "COMPLETED",
+                    "EXPIRED" => "OVERDUE",
+                    "TERMINATED" => "CANCELLED",
+                    _ => "IN_PROGRESS"
+                };
                 DateTime? completedAtTime = status == "APPROVED" || status == "REJECTED" ? submittedAtBase.AddDays(5) : null;
 
                 var sla = new SlaTracking
@@ -207,9 +222,23 @@ public class SeedDataController : ControllerBase
                     continue;
                 }
 
-                string requestType = i % 3 == 0 ? "RENEWAL" : (i % 3 == 1 ? "CHANGE_ADDRESS" : "TERMINATION");
-                string requestStatus = i % 4 == 0 ? "APPROVED" : (i % 4 == 1 ? "REJECTED" : (i % 4 == 2 ? "SUBMITTED" : "DRAFT"));
-                
+                string requestType = i % 3 == 0 ? "RENEW" : (i % 3 == 1 ? "CHANGE_ADDRESS" : "TERMINATE");
+                string requestStatus;
+                if (i % 7 == 0)
+                    requestStatus = "APPROVED";
+                else if (i % 7 == 1)
+                    requestStatus = "REJECTED";
+                else if (i % 7 == 2)
+                    requestStatus = "SUBMITTED";
+                else if (i % 7 == 3)
+                    requestStatus = "UNDER_REVIEW";
+                else if (i % 7 == 4)
+                    requestStatus = "NEED_MORE_INFO";
+                else if (i % 7 == 5)
+                    requestStatus = "DRAFT";
+                else
+                    requestStatus = "CANCELLED";
+
                 DateTime requestCreatedAt = reg.SubmittedAt ?? DateTime.Now;
                 DateTime? requestSubmittedAt = requestStatus != "DRAFT" ? requestCreatedAt.AddDays(2) : null;
                 DateTime? requestProcessedAt = (requestStatus == "APPROVED" || requestStatus == "REJECTED") && requestSubmittedAt.HasValue 
