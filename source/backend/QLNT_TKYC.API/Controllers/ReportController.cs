@@ -58,6 +58,26 @@ public class ReportController : ControllerBase
     }
 
     /// <summary>
+    /// Thống kê theo trạng thái hồ sơ (DRAFT, SUBMITTED, APPROVED, REJECTED, v.v.)
+    /// </summary>
+    [HttpGet("by-status")]
+    public async Task<ActionResult<List<StatusStatDto>>> GetStatsByStatus()
+    {
+        var result = await _reportService.GetStatsByStatusAsync();
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Thống kê theo thời gian (ngày). Hỗ trợ lọc theo fromDate và toDate
+    /// </summary>
+    [HttpGet("by-time")]
+    public async Task<ActionResult<List<TimeStatDto>>> GetStatsByTime([FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
+    {
+        var result = await _reportService.GetStatsByTimeAsync(fromDate, toDate);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Thống kê hiệu suất xử lý hồ sơ và thời hạn SLA
     /// </summary>
     [HttpGet("sla-performance")]

@@ -48,3 +48,20 @@ public class SlaPerformanceDto
     public double OnTimeRatePercentage { get; set; }
     public double AverageProcessingHours { get; set; }
 }
+
+public class StatusStatDto
+{
+    public string Status { get; set; } = null!;
+    public int Count { get; set; }
+    public double Percentage { get; set; }
+}
+
+public class TimeStatDto
+{
+    public DateTime Date { get; set; }
+    public int SubmittedCount { get; set; }
+    public int ApprovedCount { get; set; }
+    public int RejectedCount { get; set; }
+    public int UnderReviewCount { get; set; }
+    public int NeedMoreInfoCount { get; set; }
+}

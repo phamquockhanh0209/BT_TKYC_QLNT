@@ -9,4 +9,6 @@ public interface IReportService
     Task<List<ClassStatDto>> GetStatsByClassAsync();
     Task<List<LocationStatDto>> GetStatsByLocationAsync();
     Task<SlaPerformanceDto> GetSlaPerformanceAsync();
+    Task<List<StatusStatDto>> GetStatsByStatusAsync();
+    Task<List<TimeStatDto>> GetStatsByTimeAsync(DateTime? fromDate, DateTime? toDate);
 }

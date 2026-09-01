@@ -140,13 +140,73 @@ public class ReportService : IReportService
 
         var rate = total > 0 ? Math.Round((double)onTime / total * 100, 2) : 100.0;
 
+        // Tính AverageProcessingHours từ SLA_TRACKING (CompletedAt - StartedAt)
+        var completedSlas = slaList.Where(s => s.CompletedAt.HasValue).ToList();
+        double averageProcessingHours = 0;
+        if (completedSlas.Any())
+        {
+            var totalHours = completedSlas.Sum(s => (s.CompletedAt.Value - s.StartedAt).TotalHours);
+            averageProcessingHours = Math.Round(totalHours / completedSlas.Count, 2);
+        }
+
         return new SlaPerformanceDto
         {
             TotalTracked = total,
             OnTimeCount = onTime,
             OverdueCount = overdue,
             OnTimeRatePercentage = rate,
-            AverageProcessingHours = 18.5
+            AverageProcessingHours = averageProcessingHours
         };
+    }
+
+    public async Task<List<StatusStatDto>> GetStatsByStatusAsync()
+    {
+        var registrations = await _context.Registrations.AsNoTracking().ToListAsync();
+
+        var totalRegs = registrations.Count;
+        if (totalRegs == 0)
+            return new List<StatusStatDto>();
+
+        var result = registrations
+            .GroupBy(r => r.Status ?? "UNKNOWN")
+            .Select(g => new StatusStatDto
+            {
+                Status = g.Key,
+                Count = g.Count(),
+                Percentage = Math.Round((double)g.Count() / totalRegs * 100, 2)
+            })
+            .OrderByDescending(s => s.Count)
+            .ToList();
+
+        return result;
+    }
+
+    public async Task<List<TimeStatDto>> GetStatsByTimeAsync(DateTime? fromDate, DateTime? toDate)
+    {
+        var registrations = await _context.Registrations.AsNoTracking().ToListAsync();
+
+        // Nếu không có fromDate/toDate, lấy tất cả
+        var filtered = registrations;
+        if (fromDate.HasValue)
+            filtered = filtered.Where(r => r.SubmittedAt.HasValue && r.SubmittedAt.Value.Date >= fromDate.Value.Date).ToList();
+        if (toDate.HasValue)
+            filtered = filtered.Where(r => r.SubmittedAt.HasValue && r.SubmittedAt.Value.Date <= toDate.Value.Date).ToList();
+
+        // GROUP BY ngày
+        var result = filtered
+            .GroupBy(r => r.SubmittedAt.HasValue ? r.SubmittedAt.Value.Date : DateTime.Today)
+            .Select(g => new TimeStatDto
+            {
+                Date = new DateTime(g.Key.Year, g.Key.Month, g.Key.Day),
+                SubmittedCount = g.Count(r => r.Status == "SUBMITTED" || r.Status == "PENDING_REVIEW" || r.Status == "UNDER_REVIEW"),
+                ApprovedCount = g.Count(r => r.Status == "APPROVED" || r.Status == "ACTIVE"),
+                RejectedCount = g.Count(r => r.Status == "REJECTED" || r.Status == "WITHDRAWN"),
+                UnderReviewCount = g.Count(r => r.Status == "UNDER_REVIEW"),
+                NeedMoreInfoCount = g.Count(r => r.Status == "NEED_MORE_INFO")
+            })
+            .OrderBy(t => t.Date)
+            .ToList();
+
+        return result;
     }
 }
