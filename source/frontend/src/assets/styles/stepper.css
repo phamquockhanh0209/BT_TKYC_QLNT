@@ -1,0 +1,89 @@
+/* Stepper Tiến trình hồ sơ chuẩn theo hình ảnh mẫu */
+.stepper-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin: 35px 0 20px 0;
+  padding: 0 10px;
+}
+
+.stepper-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.stepper-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  background-color: #ffffff;
+  border: 2px solid #94a3b8;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.stepper-circle.completed {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #ffffff;
+}
+
+.stepper-circle.current {
+  background-color: #ffffff;
+  border: 2px solid var(--primary-color);
+  color: var(--primary-color);
+}
+
+.stepper-circle.success-active {
+  background-color: #b5832a;
+  border-color: #b5832a;
+  color: #ffffff;
+}
+
+.stepper-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 2px;
+}
+
+.stepper-subtitle {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.stepper-status-text {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--badge-active-text);
+  margin-top: 2px;
+}
+
+/* Đường nối giữa các bước */
+.stepper-line {
+  flex: 1;
+  height: 2px;
+  background-color: #cbd5e1;
+  position: relative;
+  top: -18px;
+  z-index: 1;
+  margin: 0 8px;
+}
+
+.stepper-line.completed {
+  background-color: #334155;
+}
+
+.stepper-line.gold {
+  background-color: #b5832a;
+}

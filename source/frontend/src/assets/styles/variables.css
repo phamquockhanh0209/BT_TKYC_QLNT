@@ -1,0 +1,19 @@
+:root {
+  --primary-color: #163828;        /* Xanh rêu đậm học viện */
+  --primary-dark: #0f271c;
+  --primary-light: #204e39;
+  --accent-gold: #c59b27;          /* Màu vàng nhũ điểm xuyết */
+  --accent-amber: #d97706;         /* Màu cam cảnh báo */
+  --bg-page: #fbfbf8;              /* Màu nền ngà ấm dịu mắt */
+  --bg-card: #ffffff;              /* Nền thẻ trắng */
+  --border-color: #e8eae6;         /* Đường viền thanh mảnh */
+  --text-dark: #1f2937;            /* Chữ chính */
+  --text-muted: #6b7280;           /* Chữ phụ mờ */
+  --badge-active-bg: #e6f4ea;      /* Nền badge xanh lá */
+  --badge-active-text: #137333;    /* Chữ badge xanh lá */
+  --badge-warning-bg: #fef3c7;
+  --badge-warning-text: #92400e;
+  --h1: #806d05;              /* Màu xanh link */
+  --font-heading: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
