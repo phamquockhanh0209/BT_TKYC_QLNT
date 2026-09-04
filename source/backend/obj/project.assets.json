@@ -3843,11 +3843,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\quoc_\\Downloads\\QLNT_TKYC\\source\\backend\\QLNT_TKYC.API\\QLNT_TKYC.API.csproj",
+      "projectUniqueName": "C:\\Users\\quoc_\\Downloads\\QLNT_TKYC\\source\\backend\\QLNT_TKYC.API.csproj",
       "projectName": "QLNT_TKYC.API",
-      "projectPath": "C:\\Users\\quoc_\\Downloads\\QLNT_TKYC\\source\\backend\\QLNT_TKYC.API\\QLNT_TKYC.API.csproj",
+      "projectPath": "C:\\Users\\quoc_\\Downloads\\QLNT_TKYC\\source\\backend\\QLNT_TKYC.API.csproj",
       "packagesPath": "C:\\Users\\quoc_\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\quoc_\\Downloads\\QLNT_TKYC\\source\\backend\\QLNT_TKYC.API\\obj\\",
+      "outputPath": "C:\\Users\\quoc_\\Downloads\\QLNT_TKYC\\source\\backend\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

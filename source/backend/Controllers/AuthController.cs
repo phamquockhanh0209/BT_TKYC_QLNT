@@ -136,16 +136,35 @@ public class AuthController : ControllerBase
 
         var expiresAt = DateTime.Now.AddHours(2);
 
+        // Lấy thông tin sinh viên chi tiết nếu tài khoản là sinh viên (hoặc username trùng MSSV)
+        StudentInfoDto? studentInfo = null;
+        var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentCode == user.Username);
+        if (student != null)
+        {
+            studentInfo = new StudentInfoDto
+            {
+                StudentId = student.StudentId,
+                StudentCode = student.StudentCode,
+                FullName = student.FullName,
+                Faculty = student.Faculty,
+                ClassName = student.ClassName,
+                Email = student.Email,
+                Phone = student.Phone
+            };
+        }
+
         return Ok(new LoginResponse
         {
             Token = token,
             UserId = user.UserId,
             Username = user.Username,
+            FullName = user.FullName,
 
             // Nếu có nhiều Role thì lấy Role đầu tiên
             Role = roles.FirstOrDefault() ?? "STUDENT",
 
-            ExpiresAt = expiresAt
+            ExpiresAt = expiresAt,
+            Student = studentInfo
         });
     }
 

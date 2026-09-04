@@ -82,7 +82,7 @@ export default function AdminReportsPage() {
         <div className="col-md-4">
           <div className="app-card-clean bg-white border p-3">
             <div className="text-muted fs-8 mb-1">Tổng hồ sơ ngoại trú</div>
-            <div className="fw-bolder fs-2 text-primary">{displayOverview.totalRegistrations}</div>
+            <div className="fw-bolder fs-2" style={{ color: '#1d4ed8' }}>{displayOverview.totalRegistrations}</div>
             <div className="fs-8 text-success fw-semibold">Tỷ lệ phê duyệt: {displayOverview.approvalRatePercentage}%</div>
           </div>
         </div>
@@ -116,8 +116,8 @@ export default function AdminReportsPage() {
               {displayFaculty.map((row, idx) => (
                 <tr key={idx} className="border-bottom border-light">
                   <td className="fw-semibold text-dark">{row.faculty}</td>
-                  <td className="text-center text-muted">{row.totalStudents}</td>
-                  <td className="text-center fw-bold text-primary">{row.offCampusStudents}</td>
+                  <td className="text-center fw-bold" style={{ color: '#46043f' }}>{row.totalStudents}</td>
+                  <td className="text-center fw-bold" style={{ color: '#1d4ed8' }}>{row.offCampusStudents}</td>
                   <td className="text-end fw-bold text-success">{row.percentage}%</td>
                   <td className="text-end" style={{ width: '140px' }}>
                     <div className="progress" style={{ height: '8px' }}>

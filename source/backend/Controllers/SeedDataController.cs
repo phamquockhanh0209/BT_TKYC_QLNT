@@ -356,6 +356,192 @@ public class SeedDataController : ControllerBase
         return students;
     }
 
+    /// <summary>
+    /// Nạp dữ liệu sinh viên có cấu trúc MSSV theo quy tắc nghiệp vụ:
+    /// - 4 ngành: CNTT (01), KTMT (02), Logistics (03), Tự động hóa (04)
+    /// - 4 khóa: K67 (Năm 1), K66 (Năm 2), K65 (Năm 3), K64 (Năm 4)
+    /// - STT: 01, 02, 03... (MSSV = [Khóa][Ngành][STT], ví dụ 650101)
+    /// Đồng thời tạo tài khoản USER (Username = MSSV, Password = 123456) và gán Role STUDENT
+    /// </summary>
+    [HttpPost("seed-structured-students")]
+    public async Task<IActionResult> SeedStructuredStudents()
+    {
+        try
+        {
+            var studentRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleCode == "STUDENT");
+            if (studentRole == null)
+            {
+                studentRole = new Role { RoleCode = "STUDENT", RoleName = "Sinh viên", Status = "ACTIVE" };
+                _context.Roles.Add(studentRole);
+                await _context.SaveChangesAsync();
+            }
+
+            string defaultHash = BCrypt.Net.BCrypt.HashPassword("123456");
+
+            // Đảm bảo admin, officer01, reviewer01 cũng có pass 123456 và status ACTIVE
+            var staffUsernames = new[] { "admin", "officer01", "reviewer01" };
+            var staffUsers = await _context.Users.Where(u => staffUsernames.Contains(u.Username)).ToListAsync();
+            foreach (var staff in staffUsers)
+            {
+                staff.PasswordHash = defaultHash;
+                staff.Status = "ACTIVE";
+                staff.UpdatedAt = DateTime.Now;
+            }
+
+            var specs = new[]
+            {
+                new { Code = "01", Major = "Công nghệ Thông tin", ShortName = "CNTT", Faculty = "Công nghệ Thông tin" },
+                new { Code = "02", Major = "Kỹ thuật Máy tính", ShortName = "KTMT", Faculty = "Kỹ thuật Máy tính" },
+                new { Code = "03", Major = "Logistics & Chuỗi cung ứng", ShortName = "LOG", Faculty = "Kinh tế & Vận tải" },
+                new { Code = "04", Major = "Tự động hóa & Kỹ thuật Điều khiển", ShortName = "TDH", Faculty = "Điện - Điện tử" }
+            };
+
+            var cohorts = new[]
+            {
+                new { Cohort = "67", YearName = "Năm 1 (K67)", BirthYear = 2008 },
+                new { Cohort = "66", YearName = "Năm 2 (K66)", BirthYear = 2007 },
+                new { Cohort = "65", YearName = "Năm 3 (K65)", BirthYear = 2006 },
+                new { Cohort = "64", YearName = "Năm 4 (K64)", BirthYear = 2005 }
+            };
+
+            var sampleNames = new[]
+            {
+                new { FullName = "Nguyễn Văn An", Gender = "MALE" },
+                new { FullName = "Trần Thị Bình", Gender = "FEMALE" },
+                new { FullName = "Lê Quốc Dũng", Gender = "MALE" }
+            };
+
+            int createdCount = 0;
+            int updatedCount = 0;
+
+            foreach (var spec in specs)
+            {
+                foreach (var cohort in cohorts)
+                {
+                    string className = $"{cohort.Cohort}-{spec.ShortName}";
+
+                    for (int stt = 1; stt <= sampleNames.Length; stt++)
+                    {
+                        string sttStr = stt.ToString("D2");
+                        string mssv = $"{cohort.Cohort}{spec.Code}{sttStr}"; // vd: 650101
+                        var person = sampleNames[stt - 1];
+
+                        // 1. Kiểm tra / tạo Student
+                        var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentCode == mssv);
+                        if (student == null)
+                        {
+                            student = new Student
+                            {
+                                StudentCode = mssv,
+                                FullName = person.FullName,
+                                Gender = person.Gender,
+                                Faculty = spec.Faculty,
+                                ClassName = className,
+                                Email = $"{mssv}@student.edu.vn",
+                                Phone = $"090{cohort.Cohort}{spec.Code}{sttStr}",
+                                DateOfBirth = new DateOnly(cohort.BirthYear, 3 + stt, 10 + stt),
+                                AcademicStatus = "ENROLLED",
+                                CreatedAt = DateTime.Now,
+                                UpdatedAt = DateTime.Now
+                            };
+                            _context.Students.Add(student);
+                            createdCount++;
+                        }
+                        else
+                        {
+                            student.FullName = person.FullName;
+                            student.Gender = person.Gender;
+                            student.Faculty = spec.Faculty;
+                            student.ClassName = className;
+                            student.UpdatedAt = DateTime.Now;
+                            updatedCount++;
+                        }
+
+                        // 2. Kiểm tra / tạo User
+                        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == mssv);
+                        if (user == null)
+                        {
+                            user = new User
+                            {
+                                Username = mssv,
+                                PasswordHash = defaultHash,
+                                FullName = person.FullName,
+                                Email = $"{mssv}@student.edu.vn",
+                                Phone = $"090{cohort.Cohort}{spec.Code}{sttStr}",
+                                Status = "ACTIVE",
+                                CreatedAt = DateTime.Now,
+                                UpdatedAt = DateTime.Now
+                            };
+                            _context.Users.Add(user);
+                            await _context.SaveChangesAsync();
+                        }
+                        else
+                        {
+                            user.FullName = person.FullName;
+                            user.PasswordHash = defaultHash;
+                            user.Status = "ACTIVE";
+                            user.UpdatedAt = DateTime.Now;
+                            await _context.SaveChangesAsync();
+                        }
+
+                        // 3. Gán Role STUDENT
+                        var userRole = await _context.UserRoles.FirstOrDefaultAsync(ur => ur.UserId == user.UserId && ur.RoleId == studentRole.RoleId);
+                        if (userRole == null)
+                        {
+                            userRole = new UserRole
+                            {
+                                UserId = user.UserId,
+                                RoleId = studentRole.RoleId,
+                                AssignedAt = DateTime.Now
+                            };
+                            _context.UserRoles.Add(userRole);
+                        }
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Đã tạo/cập nhật thành công 48 sinh viên chuẩn quy tắc MSSV và tài khoản đăng nhập!",
+                defaultPassword = "123456",
+                createdStudents = createdCount,
+                updatedStudents = updatedCount,
+                totalStudents = await _context.Students.CountAsync()
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Lỗi khi nạp dữ liệu sinh viên có cấu trúc", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Lấy danh sách tài khoản sinh viên mẫu theo quy tắc MSSV để hiển thị hướng dẫn đăng nhập
+    /// </summary>
+    [HttpGet("student-accounts")]
+    public async Task<IActionResult> GetStudentAccounts()
+    {
+        var students = await _context.Students
+            .Where(s => s.StudentCode.Length == 6)
+            .OrderBy(s => s.StudentCode)
+            .Select(s => new
+            {
+                mssv = s.StudentCode,
+                fullName = s.FullName,
+                className = s.ClassName,
+                faculty = s.Faculty,
+                email = s.Email,
+                cohort = s.StudentCode.Substring(0, 2),
+                majorCode = s.StudentCode.Substring(2, 2),
+                stt = s.StudentCode.Substring(4, 2)
+            })
+            .ToListAsync();
+
+        return Ok(students);
+    }
+
     private string GetStatusByIndex(int index)
     {
         // Phân bố các status theo tỷ lệ hợp lý

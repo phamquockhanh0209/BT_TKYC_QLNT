@@ -1,9 +1,15 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Bell, ShieldCheck } from 'lucide-react';
+import { Bell, ShieldCheck, LogOut } from 'lucide-react';
+import authService from '../../api/authService';
 
 export default function StudentNavbar({ studentName = "Nguyễn Văn An", roleName = "Sinh viên", notificationCount = 3 }) {
   const navigate = useNavigate();
+  const currentUser = authService.getCurrentUser();
+  const displayStudentName = currentUser?.fullName || currentUser?.student?.fullName || studentName;
+  const displayRoleName = currentUser?.student?.className 
+    ? `Lớp ${currentUser.student.className} · ${currentUser.username}` 
+    : roleName;
 
   return (
     <header className="sticky-top bg-white border-bottom shadow-xs" style={{ zIndex: 1020, borderColor: 'var(--border-color)' }}>
@@ -119,26 +125,37 @@ export default function StudentNavbar({ studentName = "Nguyễn Văn An", roleNa
               )}
             </button>
 
-            {/* Avatar & Tên */}
-            <div 
-              className="d-flex align-items-center gap-2 cursor-pointer" 
-              style={{ cursor: 'pointer' }}
-              onClick={() => navigate('/profile')}
-            >
+            {/* Avatar & Tên & Đăng xuất */}
+            <div className="d-flex align-items-center gap-2">
               <div 
-                className="rounded-circle overflow-hidden border"
-                style={{ width: '38px', height: '38px', borderColor: 'var(--border-color)' }}
+                className="d-flex align-items-center gap-2 cursor-pointer" 
+                style={{ cursor: 'pointer' }}
+                onClick={() => navigate('/profile')}
+                title="Xem hồ sơ cá nhân"
               >
-                <img 
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" 
-                  alt="Avatar" 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
+                <div 
+                  className="rounded-circle overflow-hidden border d-flex align-items-center justify-content-center bg-light text-primary fw-bold"
+                  style={{ width: '38px', height: '38px', borderColor: 'var(--border-color)', fontSize: '0.85rem' }}
+                >
+                  {currentUser?.fullName ? currentUser.fullName.split(' ').pop()?.charAt(0) : 'SV'}
+                </div>
+                <div className="d-none d-sm-block lh-sm text-end">
+                  <div className="fw-bold fs-7 text-dark">{displayStudentName}</div>
+                  <small className="text-muted" style={{ fontSize: '0.75rem' }}>{displayRoleName}</small>
+                </div>
               </div>
-              <div className="d-none d-sm-block lh-sm text-end">
-                <div className="fw-bold fs-7 text-dark">{studentName}</div>
-                <small className="text-muted" style={{ fontSize: '0.75rem' }}>{roleName}</small>
-              </div>
+
+              {/* Nút Đăng xuất */}
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-danger ms-1 d-inline-flex align-items-center gap-1"
+                style={{ fontSize: '0.75rem', padding: '4px 8px' }}
+                onClick={() => authService.logout()}
+                title="Đăng xuất khỏi hệ thống"
+              >
+                <LogOut size={14} />
+                <span className="d-none d-md-inline">Đăng xuất</span>
+              </button>
             </div>
 
           </div>

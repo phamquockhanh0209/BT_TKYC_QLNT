@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "FaAUdjoHUYI=",
+  "dgSpecHash": "FBsOXwEYYDM=",
   "success": true,
-  "projectFilePath": "C:\\Users\\quoc_\\Downloads\\QLNT_TKYC\\source\\backend\\QLNT_TKYC.API\\QLNT_TKYC.API.csproj",
+  "projectFilePath": "C:\\Users\\quoc_\\Downloads\\QLNT_TKYC\\source\\backend\\QLNT_TKYC.API.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\quoc_\\.nuget\\packages\\azure.core\\1.50.0\\azure.core.1.50.0.nupkg.sha512",
     "C:\\Users\\quoc_\\.nuget\\packages\\azure.identity\\1.17.1\\azure.identity.1.17.1.nupkg.sha512",

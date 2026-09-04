@@ -12,7 +12,7 @@ export default function WelcomeBanner({
     <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between pb-4 mb-2">
       {/* Lời chào & Thông tin sinh viên */}
       <div>
-        <h1 className="fw-bold fs-2 mb-1" style={{ color: 'var(--text-dark)', letterSpacing: '-0.02em' }}>
+        <h1 className="fw-bold fs-2 mb-1" style={{ color: '#cdb501', letterSpacing: '-0.02em' }}>
           Xin chào, {studentName}
         </h1>
         <div className="text-muted fs-6">

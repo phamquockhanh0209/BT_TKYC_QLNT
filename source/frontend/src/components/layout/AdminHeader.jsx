@@ -1,9 +1,11 @@
 import React from 'react';
-import { Bell, ChevronDown, Activity, RefreshCw } from 'lucide-react';
+import { Bell, ChevronDown, Activity, RefreshCw, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import authService from '../../api/authService';
 
 export default function AdminHeader({ adminName = "System Administrator", roleTitle = "Super Admin" }) {
   const navigate = useNavigate();
+  const currentUser = authService.getCurrentUser();
 
   return (
     <header className="bg-white border-bottom px-4 py-3 sticky-top" style={{ zIndex: 1010, borderColor: 'var(--border-color)' }}>
@@ -43,8 +45,8 @@ export default function AdminHeader({ adminName = "System Administrator", roleTi
             </span>
           </button>
 
-          {/* User profile dropdown trigger */}
-          <div className="d-flex align-items-center gap-2 cursor-pointer border-start ps-3" style={{ cursor: 'pointer', borderColor: 'var(--border-color)' }}>
+          {/* User profile & Logout */}
+          <div className="d-flex align-items-center gap-2 border-start ps-3" style={{ borderColor: 'var(--border-color)' }}>
             <div 
               className="rounded-circle overflow-hidden border d-flex align-items-center justify-content-center text-white fw-bold fs-7"
               style={{ width: '38px', height: '38px', backgroundColor: '#0f172a' }}
@@ -52,10 +54,17 @@ export default function AdminHeader({ adminName = "System Administrator", roleTi
               AD
             </div>
             <div className="d-none d-sm-block text-start lh-1">
-              <div className="fw-bold fs-7 text-dark">{adminName}</div>
-              <small className="text-muted" style={{ fontSize: '0.7rem' }}>{roleTitle}</small>
+              <div className="fw-bold fs-7 text-dark">{currentUser?.fullName || adminName}</div>
+              <small className="text-muted" style={{ fontSize: '0.7rem' }}>{currentUser?.role || roleTitle}</small>
             </div>
-            <ChevronDown size={16} className="text-muted" />
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-danger ms-2 d-inline-flex align-items-center gap-1 fs-8"
+              onClick={() => authService.logout()}
+              title="Đăng xuất"
+            >
+              <LogOut size={14} /> Thoát
+            </button>
           </div>
         </div>
       </div>
