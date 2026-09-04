@@ -1,31 +1,50 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Check, Info, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Check, Info, AlertTriangle, Clock, ArrowRight } from 'lucide-react';
 
-export default function NotificationWidget() {
-  const notifications = [
-    {
-      id: 1,
-      type: "success",
-      icon: <Check size={18} strokeWidth={2.5} />,
-      content: "Hồ sơ ngoại trú của bạn đã được duyệt và đang hoạt động.",
-      time: "2 giờ trước"
-    },
-    {
-      id: 2,
-      type: "info",
+const STATUS_MAP = {
+  SUBMITTED:  { type: 'info',    icon: <Clock size={18} strokeWidth={2.5} />,         label: 'Đang chờ xác nhận',    msg: 'Hồ sơ ngoại trú của bạn đã được nộp và đang chờ cán bộ xét duyệt.' },
+  PROCESSING: { type: 'info',    icon: <Info size={18} strokeWidth={2.5} />,           label: 'Đang xử lý',           msg: 'Hồ sơ của bạn đang trong quá trình xét duyệt.' },
+  APPROVED:   { type: 'success', icon: <Check size={18} strokeWidth={2.5} />,          label: 'Đã duyệt',             msg: 'Hồ sơ ngoại trú của bạn đã được phê duyệt.' },
+  ACTIVE:     { type: 'success', icon: <Check size={18} strokeWidth={2.5} />,          label: 'Đang hoạt động',       msg: 'Hồ sơ ngoại trú đang có hiệu lực.' },
+  REJECTED:   { type: 'warning', icon: <AlertTriangle size={18} strokeWidth={2.5} />, label: 'Bị từ chối',           msg: 'Hồ sơ của bạn đã bị từ chối. Vui lòng kiểm tra và nộp lại.' },
+  EXPIRED:    { type: 'warning', icon: <AlertTriangle size={18} strokeWidth={2.5} />, label: 'Hết hạn',              msg: 'Hồ sơ đã hết hạn. Vui lòng gia hạn hoặc tạo hồ sơ mới.' },
+};
+
+export default function NotificationWidget({ registrations = [] }) {
+  // Sinh thông báo động từ danh sách hồ sơ thật
+  const notifications = registrations.slice(0, 3).map((reg, idx) => {
+    const info = STATUS_MAP[reg.status] || {
+      type: 'info',
       icon: <Info size={18} strokeWidth={2.5} />,
-      content: "Yêu cầu gia hạn hợp đồng của bạn đang được cán bộ xử lý.",
-      time: "1 ngày trước"
-    },
-    {
-      id: 3,
-      type: "warning",
+      label: reg.status,
+      msg: `Hồ sơ ${reg.registrationCode || '#' + reg.registrationId} — ${reg.status}`
+    };
+
+    const submittedAt = reg.submittedAt ? new Date(reg.submittedAt) : null;
+    const timeLabel = submittedAt
+      ? submittedAt.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      : '—';
+
+    return {
+      id: reg.registrationId || idx,
+      type: info.type,
+      icon: info.icon,
+      content: `${info.msg} (Mã: ${reg.registrationCode || reg.registrationId})`,
+      time: timeLabel
+    };
+  });
+
+  // Nếu chưa có hồ sơ → thông báo nhắc đăng ký
+  if (notifications.length === 0) {
+    notifications.push({
+      id: 0,
+      type: 'warning',
       icon: <AlertTriangle size={18} strokeWidth={2.5} />,
-      content: "Vui lòng cập nhật giấy xác nhận cư trú trước ngày 30/09/2026.",
-      time: "3 ngày trước"
-    }
-  ];
+      content: 'Bạn chưa có hồ sơ ngoại trú. Hãy khai báo để hoàn thiện thủ tục.',
+      time: 'Ngay bây giờ'
+    });
+  }
 
   return (
     <div className="app-card-clean mb-4">
@@ -34,8 +53,8 @@ export default function NotificationWidget() {
         <div className="text-uppercase fw-bold text-muted" style={{ fontSize: '0.78rem', letterSpacing: '0.06em' }}>
           THÔNG BÁO MỚI
         </div>
-        <Link 
-          to="/notifications" 
+        <Link
+          to="/notifications"
           className="text-decoration-none text-dark fw-semibold d-inline-flex align-items-center gap-1"
           style={{ fontSize: '0.82rem' }}
         >
@@ -67,3 +86,4 @@ export default function NotificationWidget() {
     </div>
   );
 }
+

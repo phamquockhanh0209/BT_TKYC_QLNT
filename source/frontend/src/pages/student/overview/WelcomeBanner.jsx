@@ -1,5 +1,16 @@
 import React from 'react';
 
+const STATUS_CONFIG = {
+  SUBMITTED:  { label: 'CHỜ XÁC NHẬN',   color: '#d97706', dotColor: '#f59e0b' },
+  UNDER_REVIEW: { label: 'ĐANG XÉT DUYỆT', color: '#d97706', dotColor: '#f59e0b' },
+  PROCESSING: { label: 'ĐANG XỬ LÝ',     color: '#2563eb', dotColor: '#3b82f6' },
+  APPROVED:   { label: 'ĐÃ DUYỆT',       color: '#15803d', dotColor: '#16a34a' },
+  ACTIVE:     { label: 'HOẠT ĐỘNG',      color: '#15803d', dotColor: '#16a34a' },
+  REJECTED:   { label: 'BỊ TỪ CHỐI',     color: '#dc2626', dotColor: '#ef4444' },
+  DRAFT:      { label: 'BẢN NHÁP',       color: '#6b7280', dotColor: '#9ca3af' },
+  'CHƯA ĐĂNG KÝ': { label: 'CHƯA ĐĂNG KÝ', color: '#6b7280', dotColor: '#9ca3af' }
+};
+
 export default function WelcomeBanner({
   studentName = "Nguyễn Văn An",
   studentCode = "2021001234",
@@ -9,6 +20,12 @@ export default function WelcomeBanner({
   documentRatio = "4/4",
   pendingRequestsCount = 1
 }) {
+  const statusCfg = STATUS_CONFIG[registrationStatus] || {
+    label: registrationStatus,
+    color: '#d97706',
+    dotColor: '#f59e0b'
+  };
+
   return (
     <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between pb-4 mb-2">
       {/* Lời chào & Thông tin sinh viên */}
@@ -35,10 +52,10 @@ export default function WelcomeBanner({
           <div className="d-flex align-items-center gap-1 mt-1">
             <span 
               className="rounded-circle d-inline-block" 
-              style={{ width: '8px', height: '8px', backgroundColor: '#16a34a' }}
+              style={{ width: '8px', height: '8px', backgroundColor: statusCfg.dotColor }}
             ></span>
-            <span className="fw-bolder fs-6" style={{ color: '#15803d' }}>
-              {registrationStatus}
+            <span className="fw-bolder fs-6" style={{ color: statusCfg.color }}>
+              {statusCfg.label}
             </span>
           </div>
         </div>
@@ -62,8 +79,8 @@ export default function WelcomeBanner({
           <div className="text-uppercase text-muted fw-semibold" style={{ fontSize: '0.72rem', letterSpacing: '0.05em' }}>
             YÊU CẦU
           </div>
-          <div className="fw-bold fs-6 mt-1" style={{ color: '#b45309' }}>
-            {pendingRequestsCount} đang xử lý
+          <div className="fw-bold fs-6 mt-1" style={{ color: pendingRequestsCount > 0 ? '#b45309' : '#6b7280' }}>
+            {pendingRequestsCount > 0 ? `${pendingRequestsCount} đang xử lý` : '0 đang xử lý'}
           </div>
         </div>
       </div>

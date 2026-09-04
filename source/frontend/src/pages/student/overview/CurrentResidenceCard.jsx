@@ -76,8 +76,8 @@ export default function CurrentResidenceCard({
                 Trạng thái hồ sơ
               </span>
               <span>
-                <span className="badge-pill-custom badge-active">
-                  {status}
+                <span className={`badge-pill-custom ${['APPROVED', 'ACTIVE'].includes(status) ? 'badge-active' : status === 'REJECTED' ? 'badge-rejected' : 'badge-pending'}`}>
+                  {status === 'SUBMITTED' ? 'CHỜ XÁC NHẬN' : status === 'PROCESSING' ? 'ĐANG XỬ LÝ' : status === 'APPROVED' ? 'ĐÃ DUYỆT' : status === 'ACTIVE' ? 'ĐANG HOẠT ĐỘNG' : status}
                 </span>
               </span>
             </div>

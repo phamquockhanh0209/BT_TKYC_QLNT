@@ -163,15 +163,15 @@ export default function OverviewPage() {
           )}
 
           {/* Thanh tiến trình hồ sơ */}
-          <RegistrationStepper />
+          <RegistrationStepper activeReg={activeReg} />
 
           {/* Bảng Lịch sử hoạt động */}
-          <RecentActivityTable />
+          <RecentActivityTable registrations={registrations} />
         </div>
 
         {/* === CỘT PHẢI (4) === */}
         <div className="col-lg-4 col-12">
-          <NotificationWidget />
+          <NotificationWidget registrations={registrations} />
           <QuickActionsWidget />
           <SupportWidget />
         </div>

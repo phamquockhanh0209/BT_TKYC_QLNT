@@ -57,6 +57,22 @@ export const studentService = {
         'Content-Type': 'multipart/form-data'
       }
     });
+  },
+
+  /**
+   * Lấy danh sách yêu cầu gắn với một hồ sơ đăng ký
+   * @param {number|string} registrationId
+   */
+  async getRequestsByRegistration(registrationId) {
+    return await axiosClient.get(`/Request/registration/${registrationId}`);
+  },
+
+  /**
+   * Tạo yêu cầu mới (gia hạn, khiếu nại, thay đổi...)
+   * @param {Object} data
+   */
+  async createRequest(data) {
+    return await axiosClient.post('/Request', data);
   }
 };
 
