@@ -153,7 +153,7 @@ namespace QLNT_TKYC.API.Controllers
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<Document>> Upload([FromForm] UploadDocumentDto dto)
         {
-            var doc = await _documentService.UploadAsync(dto.File, dto.RegistrationId);
+            var doc = await _documentService.UploadAsync(dto.File, dto.RegistrationId, dto.DocumentType);
             return CreatedAtAction(nameof(GetDocument), new { id = doc.DocumentId }, doc);
         }
 

@@ -6,9 +6,9 @@ import authService from '../../api/authService';
 export default function StudentNavbar({ studentName = "Nguyễn Văn An", roleName = "Sinh viên", notificationCount = 3 }) {
   const navigate = useNavigate();
   const currentUser = authService.getCurrentUser();
-  const displayStudentName = currentUser?.fullName || currentUser?.student?.fullName || studentName;
-  const displayRoleName = currentUser?.student?.className 
-    ? `Lớp ${currentUser.student.className} · ${currentUser.username}` 
+  const displayStudentName = currentUser?.student?.fullName || currentUser?.fullName || studentName;
+  const displayRoleName = currentUser?.student?.className
+    ? `Lớp ${currentUser.student.className} · ${currentUser.student.studentCode || currentUser.username}`
     : roleName;
 
   return (
@@ -137,7 +137,7 @@ export default function StudentNavbar({ studentName = "Nguyễn Văn An", roleNa
                   className="rounded-circle overflow-hidden border d-flex align-items-center justify-content-center bg-light text-primary fw-bold"
                   style={{ width: '38px', height: '38px', borderColor: 'var(--border-color)', fontSize: '0.85rem' }}
                 >
-                  {currentUser?.fullName ? currentUser.fullName.split(' ').pop()?.charAt(0) : 'SV'}
+                  {displayStudentName ? displayStudentName.split(' ').pop()?.charAt(0) : 'SV'}
                 </div>
                 <div className="d-none d-sm-block lh-sm text-end">
                   <div className="fw-bold fs-7 text-dark">{displayStudentName}</div>

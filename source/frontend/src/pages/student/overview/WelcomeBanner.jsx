@@ -4,6 +4,7 @@ export default function WelcomeBanner({
   studentName = "Nguyễn Văn An",
   studentCode = "2021001234",
   faculty = "Khoa Công nghệ thông tin",
+  className = "—",
   registrationStatus = "ACTIVE",
   documentRatio = "4/4",
   pendingRequestsCount = 1
@@ -19,6 +20,8 @@ export default function WelcomeBanner({
           <span>MSSV: {studentCode}</span>
           <span className="mx-2">•</span>
           <span>{faculty}</span>
+          <span className="mx-2">•</span>
+          <span>Lớp: {className}</span>
         </div>
       </div>
 

@@ -5,6 +5,7 @@ using QLNT_TKYC.API.Data;
 using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -164,6 +165,11 @@ app.UseHttpsRedirection();
 // Cho phép load file tĩnh giao diện web
 app.UseDefaultFiles();
 app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "uploads")),
+    RequestPath = "/uploads"
+});
 
 // CORS
 app.UseCors("AllowAll");

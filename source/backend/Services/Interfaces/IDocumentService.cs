@@ -15,7 +15,7 @@ namespace QLNT_TKYC.API.Services.Interfaces
         /// <param name="file">The uploaded file (max 10 MB).</param>
         /// <param name="registrationId">Id of the registration to which the document belongs.</param>
         /// <returns>The created <see cref="Document"/> entity.</returns>
-        Task<Document> UploadAsync(IFormFile file, long registrationId);
+        Task<Document> UploadAsync(IFormFile file, long registrationId, string? documentType = null);
 
         /// <summary>
         /// Retrieves the current (latest) version of a document.

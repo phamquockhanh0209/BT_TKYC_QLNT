@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QLNT_TKYC.API.Data;
 using QLNT_TKYC.API.Models;
+using QLNT_TKYC.API.DTOs.Registration;
 
 namespace QLNT_TKYC.API.Controllers
 {
@@ -80,11 +81,134 @@ namespace QLNT_TKYC.API.Controllers
 
             var registrations = await _context.Registrations
                 .AsNoTracking()
+                .Include(r => r.Student)
+                .Include(r => r.Addresses)
+                    .ThenInclude(a => a.Landlord)
+                .Include(r => r.Documents)
                 .Where(r => r.StudentId == studentId)
                 .OrderByDescending(r => r.RegistrationId)
                 .ToListAsync();
 
             return Ok(registrations);
+        }
+
+        // =====================================================
+        // POST: api/Registration/submit-full
+        // Nộp hồ sơ đăng ký ngoại trú hoàn chỉnh (gồm địa chỉ, chủ trọ, SLA)
+        // =====================================================
+        [HttpPost("submit-full")]
+        public async Task<ActionResult<Registration>> SubmitFullRegistration(
+            [FromBody] FullRegistrationRequestDto dto)
+        {
+            // 1. Tìm hoặc kiểm tra sinh viên
+            Student? student = null;
+            if (dto.StudentId > 0)
+            {
+                student = await _context.Students.FirstOrDefaultAsync(s => s.StudentId == dto.StudentId);
+            }
+            if (student == null && !string.IsNullOrWhiteSpace(dto.StudentCode))
+            {
+                student = await _context.Students.FirstOrDefaultAsync(s => s.StudentCode == dto.StudentCode);
+            }
+
+            if (student == null)
+            {
+                return BadRequest(new { message = "Không tìm thấy thông tin sinh viên tương ứng." });
+            }
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+
+            // 2. Tìm hoặc tạo Chủ trọ nếu có thông tin
+            Landlord? landlord = null;
+            if (!string.IsNullOrWhiteSpace(dto.LandlordPhone))
+            {
+                landlord = await _context.Landlords.FirstOrDefaultAsync(l => l.Phone == dto.LandlordPhone);
+            }
+            if (landlord == null && !string.IsNullOrWhiteSpace(dto.LandlordFullName))
+            {
+                landlord = new Landlord
+                {
+                    FullName = dto.LandlordFullName,
+                    Phone = dto.LandlordPhone ?? "0900000000",
+                    IdentityNumber = dto.LandlordIdentityNumber,
+                    Note = dto.RoomNumber != null ? $"Phòng {dto.RoomNumber}" : dto.Note,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+                _context.Landlords.Add(landlord);
+                await _context.SaveChangesAsync();
+            }
+
+            // 3. Tạo mã hồ sơ duy nhất
+            int countToday = await _context.Registrations.CountAsync(r => r.CreatedAt.Date == DateTime.Today);
+            string regCode = $"HS-{DateTime.Now:yyyyMMdd}-{countToday + 1:D3}";
+
+            // 4. Tạo Registration (trạng thái SUBMITTED)
+            var registration = new Registration
+            {
+                StudentId = student.StudentId,
+                RegistrationCode = regCode,
+                Status = "SUBMITTED",
+                SubmittedAt = DateTime.Now,
+                StartDate = dto.StartDate,
+                ExpiryDate = dto.ExpiryDate,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            };
+            _context.Registrations.Add(registration);
+            await _context.SaveChangesAsync();
+
+            // 5. Tạo Address
+            var address = new Address
+            {
+                RegistrationId = registration.RegistrationId,
+                LandlordId = landlord?.LandlordId,
+                AddressLine = string.IsNullOrWhiteSpace(dto.RoomNumber) ? dto.AddressLine : $"{dto.AddressLine} (Phòng {dto.RoomNumber})",
+                Ward = dto.Ward,
+                District = dto.District,
+                Province = string.IsNullOrWhiteSpace(dto.Province) ? "TP. Hồ Chí Minh" : dto.Province,
+                AddressType = "TEMPORARY",
+                StartDate = dto.StartDate,
+                EndDate = dto.ExpiryDate,
+                Status = "CURRENT",
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            };
+            _context.Addresses.Add(address);
+
+            // 6. Tạo SLA Tracking 48h
+            var sla = new SlaTracking
+            {
+                RegistrationId = registration.RegistrationId,
+                SlaType = "REGISTRATION_REVIEW",
+                StartedAt = DateTime.Now,
+                DueAt = DateTime.Now.AddHours(48),
+                Status = "IN_PROGRESS",
+                CreatedAt = DateTime.Now
+            };
+            _context.SlaTrackings.Add(sla);
+
+            await _context.SaveChangesAsync();
+
+            // Trả về kèm đầy đủ navigation
+            var result = await _context.Registrations
+                .AsNoTracking()
+                .Include(r => r.Student)
+                .Include(r => r.Addresses)
+                    .ThenInclude(a => a.Landlord)
+                .Include(r => r.Documents)
+                .FirstOrDefaultAsync(r => r.RegistrationId == registration.RegistrationId);
+
+                await transaction.CommitAsync();
+                return Ok(result);
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         // =====================================================

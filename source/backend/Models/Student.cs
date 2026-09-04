@@ -19,6 +19,10 @@ public partial class Student
 
     public string? Phone { get; set; }
 
+    public string? AvatarPath { get; set; }
+
+    public string? PendingAvatarPath { get; set; }
+
     public string? Faculty { get; set; }
 
     public string? ClassName { get; set; }

@@ -687,6 +687,14 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("academic_status");
+            entity.Property(e => e.AvatarPath)
+                .HasMaxLength(500)
+                .IsUnicode(false)
+                .HasColumnName("avatar_path");
+            entity.Property(e => e.PendingAvatarPath)
+                .HasMaxLength(500)
+                .IsUnicode(false)
+                .HasColumnName("pending_avatar_path");
             entity.Property(e => e.ClassName)
                 .HasMaxLength(100)
                 .IsUnicode(false)

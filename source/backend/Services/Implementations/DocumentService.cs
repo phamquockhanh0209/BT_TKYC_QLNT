@@ -28,7 +28,7 @@ namespace QLNT_TKYC.API.Services.Implementations
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<Document> UploadAsync(IFormFile file, long registrationId)
+        public async Task<Document> UploadAsync(IFormFile file, long registrationId, string? documentType = null)
         {
             if (file == null)
                 throw new ArgumentNullException(nameof(file), "File must be provided.");
@@ -69,9 +69,10 @@ namespace QLNT_TKYC.API.Services.Implementations
             }
 
             // Retrieve or create the Document entity for the registration
+            var selectedDocumentType = string.IsNullOrWhiteSpace(documentType) ? "DEFAULT" : documentType;
             var document = await _dbContext.Documents
                 .Include(d => d.DocumentVersions)
-                .FirstOrDefaultAsync(d => d.RegistrationId == registrationId);
+                .FirstOrDefaultAsync(d => d.RegistrationId == registrationId && d.DocumentType == selectedDocumentType);
 
             if (document == null)
             {
@@ -79,7 +80,7 @@ namespace QLNT_TKYC.API.Services.Implementations
                 {
                     RegistrationId = registrationId,
                     DocumentStatus = "PENDING",
-                    DocumentType = "DEFAULT", // Adjust as needed
+                    DocumentType = selectedDocumentType,
                     RequiredFlag = true,
                     CreatedAt = now,
                     UpdatedAt = now,

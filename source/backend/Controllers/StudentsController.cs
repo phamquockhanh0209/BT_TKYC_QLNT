@@ -11,6 +11,8 @@ namespace QLNT_TKYC.API.Controllers
     [Authorize]
     public class StudentController : ControllerBase
     {
+        private const long MaxAvatarSize = 5 * 1024 * 1024;
+        private static readonly HashSet<string> AvatarExtensions = new(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".webp" };
         private readonly AppDbContext _context;
 
         public StudentController(AppDbContext context)
@@ -54,6 +56,81 @@ namespace QLNT_TKYC.API.Controllers
                 });
             }
 
+            return Ok(student);
+        }
+
+        // =====================================================
+        // GET: api/Student/by-code/650101
+        // Lấy sinh viên theo MSSV (StudentCode)
+        // =====================================================
+        [HttpGet("by-code/{studentCode}")]
+        public async Task<ActionResult<Student>> GetStudentByCode(string studentCode)
+        {
+            var student = await _context.Students
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.StudentCode == studentCode);
+
+            if (student == null)
+            {
+                return NotFound(new
+                {
+                    message = "Không tìm thấy sinh viên với MSSV này.",
+                    studentCode = studentCode
+                });
+            }
+
+            return Ok(student);
+        }
+
+        [HttpPost("{id:long}/avatar")]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<Student>> UploadAvatar(long id, IFormFile file, IWebHostEnvironment environment)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "Vui lòng chọn ảnh đại diện." });
+            if (file.Length > MaxAvatarSize)
+                return BadRequest(new { message = "Ảnh không được vượt quá 5 MB." });
+
+            var extension = Path.GetExtension(file.FileName);
+            if (!AvatarExtensions.Contains(extension))
+                return BadRequest(new { message = "Chỉ hỗ trợ ảnh JPG, PNG hoặc WEBP." });
+
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentId == id);
+            if (student == null)
+                return NotFound(new { message = "Không tìm thấy sinh viên.", studentId = id });
+
+            var relativeDirectory = Path.Combine("uploads", "students", student.StudentCode);
+            var absoluteDirectory = Path.Combine(environment.WebRootPath ?? Path.Combine(environment.ContentRootPath, "wwwroot"), relativeDirectory);
+            Directory.CreateDirectory(absoluteDirectory);
+
+            var fileName = $"avatar_{Guid.NewGuid():N}{extension.ToLowerInvariant()}";
+            var relativePath = Path.Combine(relativeDirectory, fileName).Replace("\\", "/");
+            await using (var stream = System.IO.File.Create(Path.Combine(absoluteDirectory, fileName)))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            student.AvatarPath = $"/{relativePath}";
+            student.PendingAvatarPath = null;
+            student.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            return Ok(student);
+        }
+
+        [HttpPost("{id:long}/avatar/approve")]
+        public async Task<ActionResult<Student>> ApproveAvatar(long id)
+        {
+            var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentId == id);
+            if (student == null)
+                return NotFound(new { message = "Không tìm thấy sinh viên.", studentId = id });
+            if (string.IsNullOrWhiteSpace(student.PendingAvatarPath))
+                return BadRequest(new { message = "Sinh viên chưa gửi ảnh chờ xác nhận." });
+
+            student.AvatarPath = student.PendingAvatarPath;
+            student.PendingAvatarPath = null;
+            student.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
             return Ok(student);
         }
 

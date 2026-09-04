@@ -684,3 +684,5 @@ C:\Users\quoc_\Downloads\QLNT_TKYC\source\backend\obj\Debug\net10.0\refint\QLNT_
 C:\Users\quoc_\Downloads\QLNT_TKYC\source\backend\obj\Debug\net10.0\QLNT_TKYC.API.pdb
 C:\Users\quoc_\Downloads\QLNT_TKYC\source\backend\obj\Debug\net10.0\QLNT_TKYC.API.genruntimeconfig.cache
 C:\Users\quoc_\Downloads\QLNT_TKYC\source\backend\obj\Debug\net10.0\ref\QLNT_TKYC.API.dll
+C:\Users\quoc_\Downloads\QLNT_TKYC\source\backend\bin\Debug\net10.0\QLNT_TKYC.API.staticwebassets.runtime.json
+C:\Users\quoc_\Downloads\QLNT_TKYC\source\backend\bin\Debug\net10.0\package-lock.json
