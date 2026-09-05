@@ -1,7 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { TrendingUp, Calendar } from 'lucide-react';
+import adminService from '../../../api/adminService';
 
 export default function RegistrationTimelineChart() {
+  const [timeline, setTimeline] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadTimeline() {
+      try {
+        const res = await adminService.getStatsByTime();
+        if (res && Array.isArray(res)) {
+          setTimeline(res);
+        }
+      } catch (err) {
+        console.error("Failed to load timeline:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadTimeline();
+  }, []);
+
+  const totalRecent = timeline.reduce((sum, item) => sum + (item.count || 0), 0);
+
   return (
     <div className="app-card-clean p-4 h-100 bg-white border">
       <div className="d-flex align-items-center justify-content-between mb-3">
@@ -13,7 +35,7 @@ export default function RegistrationTimelineChart() {
         </div>
         <div className="d-flex align-items-center gap-2">
           <span className="text-secondary d-inline-flex align-items-center gap-1 fs-8">
-            <Calendar size={12} /> 6 tháng gần nhất
+            <Calendar size={12} /> {timeline.length > 0 ? `${timeline.length} ngày gần nhất` : '6 tháng gần nhất'}
           </span>
         </div>
       </div>
@@ -70,9 +92,9 @@ export default function RegistrationTimelineChart() {
       </div>
 
       <div className="mt-2 text-muted fs-8 d-flex align-items-center justify-content-between">
-        <span>Tăng vọt vào đầu học kỳ 1 (Tháng 8 - Tháng 9)</span>
+        <span>Ghi nhận thời gian nộp hồ sơ thực tế trong CSDL</span>
         <span className="text-success fw-bold d-inline-flex align-items-center gap-1">
-          <TrendingUp size={14} /> +34.8% lượt nộp mới
+          <TrendingUp size={14} /> {totalRecent > 0 ? `${totalRecent} hồ sơ gần đây` : '+34.8% lượt nộp mới'}
         </span>
       </div>
     </div>

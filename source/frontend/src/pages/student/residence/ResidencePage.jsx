@@ -14,8 +14,14 @@ export default function ResidencePage() {
       const user = authService.getCurrentUser();
       const code = user?.student?.studentCode || user?.username;
       const student = await studentService.getStudentByCode(code);
+      if (!student?.studentId) return;
       const registrations = await studentService.getRegistrationsByStudent(student.studentId);
-      setRegistration(registrations.find(item => ['APPROVED', 'ACTIVE', 'SUBMITTED'].includes(item.status)) || null);
+      const list = Array.isArray(registrations) ? registrations : [];
+      setRegistration(
+        list.find(item => ['APPROVED', 'ACTIVE', 'UNDER_REVIEW', 'PROCESSING', 'SUBMITTED'].includes(item.status)) ||
+        list[0] ||
+        null
+      );
     };
     load().catch(err => setError(err?.response?.data?.message || 'Không thể tải thông tin nơi ở.')).finally(() => setLoading(false));
   }, []);
@@ -24,6 +30,15 @@ export default function ResidencePage() {
   if (error) return <div className="container-fluid py-2"><div className="alert alert-danger">{error}</div></div>;
   const address = registration?.addresses?.[0];
   const landlord = address?.landlord;
+  const houseImageDocument = registration?.documents?.find(document =>
+    document.documentType === 'HOUSE_IMAGE' &&
+    (['APPROVED', 'VALID'].includes(document.documentStatus) || registration.status === 'APPROVED')
+  );
+  const houseImageVersion = houseImageDocument?.documentVersions?.[0];
+  const houseImagePath = houseImageVersion?.filePath || houseImageDocument?.filePath;
+  const houseImageUrl = houseImagePath
+    ? (houseImagePath.startsWith('http') ? houseImagePath : `http://localhost:5005${houseImagePath.startsWith('/') ? '' : '/'}${houseImagePath}`)
+    : undefined;
   return (
     <div className="container-fluid py-2">
       <div className="d-flex align-items-center justify-content-between mb-4">
@@ -68,8 +83,8 @@ export default function ResidencePage() {
 
         <div className="col-lg-4">
           <div className="app-card-clean text-center">
-            <h5 className="fw-bold fs-6 mb-3">Hình ảnh mô phỏng nhà</h5>
-            <HouseIllustration height="180px" />
+            <h5 className="fw-bold fs-6 mb-3">Ảnh chụp cổng và số nhà trọ</h5>
+            <HouseIllustration height="180px" imageUrl={houseImageUrl} />
           </div>
         </div>
       </div>

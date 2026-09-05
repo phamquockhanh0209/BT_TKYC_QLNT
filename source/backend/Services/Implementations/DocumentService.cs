@@ -45,7 +45,8 @@ namespace QLNT_TKYC.API.Services.Implementations
             // Determine storage path: uploads/documents/yyyy/MM/
             var now = DateTime.UtcNow;
             var relativePath = Path.Combine("uploads", "documents", now.Year.ToString(), now.Month.ToString("D2"));
-            var absolutePath = Path.Combine(_env.ContentRootPath, relativePath);
+            var webRootPath = _env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot");
+            var absolutePath = Path.Combine(webRootPath, relativePath);
             Directory.CreateDirectory(absolutePath);
 
             // Generate a unique file name to avoid collisions

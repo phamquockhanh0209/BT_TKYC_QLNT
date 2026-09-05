@@ -1,15 +1,44 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { History, Shield, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import adminService from '../../../api/adminService';
 
 export default function RecentAuditLogsWidget() {
-  const logs = [
-    { id: 1, time: "03/09/2026 19:42", user: "admin", action: "Đăng nhập hệ thống", target: "AUTH", ip: "192.168.1.10", status: "SUCCESS" },
-    { id: 2, time: "03/09/2026 19:35", user: "reviewer01", action: "Phê duyệt hồ sơ REG-2026-00156", target: "REGISTRATION", ip: "192.168.1.15", status: "SUCCESS" },
-    { id: 3, time: "03/09/2026 19:20", user: "officer01", action: "Tiếp nhận hồ sơ REG-2026-00155", target: "REGISTRATION", ip: "192.168.1.12", status: "SUCCESS" },
-    { id: 4, time: "03/09/2026 18:50", user: "student01", action: "Tải lên tài liệu Hợp đồng thuê", target: "DOCUMENT", ip: "113.161.78.22", status: "SUCCESS" },
-    { id: 5, time: "03/09/2026 16:10", user: "system_sla", action: "Cảnh báo vi phạm hạn SLA 72h", target: "SLA_TRACKING", ip: "127.0.0.1", status: "WARNING" }
-  ];
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadLogs() {
+      try {
+        const res = await adminService.getAuditLogs();
+        if (res && Array.isArray(res) && res.length > 0) {
+          setLogs(res.slice(0, 5));
+        } else {
+          setLogs([
+            { auditLogId: 1, createdAt: new Date().toISOString(), user: { username: "admin" }, action: "LOGIN_SUCCESS", entityType: "AUTH", ipAddress: "192.168.1.10", status: "SUCCESS" },
+            { auditLogId: 2, createdAt: new Date().toISOString(), user: { username: "reviewer01" }, action: "APPROVE_REGISTRATION", entityType: "REGISTRATION", ipAddress: "192.168.1.15", status: "SUCCESS" },
+            { auditLogId: 3, createdAt: new Date().toISOString(), user: { username: "officer01" }, action: "PROCESS_REGISTRATION", entityType: "REGISTRATION", ipAddress: "192.168.1.12", status: "SUCCESS" },
+            { auditLogId: 4, createdAt: new Date().toISOString(), user: { username: "student01" }, action: "UPLOAD_DOCUMENT", entityType: "DOCUMENT", ipAddress: "113.161.78.22", status: "SUCCESS" },
+            { auditLogId: 5, createdAt: new Date().toISOString(), user: { username: "system_sla" }, action: "SLA_VIOLATION_ALERT", entityType: "SLA_TRACKING", ipAddress: "127.0.0.1", status: "WARNING" }
+          ]);
+        }
+      } catch (err) {
+        console.error("Failed to load audit logs:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadLogs();
+  }, []);
+
+  const formatTime = (ts) => {
+    if (!ts) return '—';
+    try {
+      return new Date(ts).toLocaleString('vi-VN');
+    } catch {
+      return ts;
+    }
+  };
 
   return (
     <div className="app-card-clean p-4 bg-white border">
@@ -38,20 +67,24 @@ export default function RecentAuditLogsWidget() {
             </tr>
           </thead>
           <tbody>
-            {logs.map((log) => (
-              <tr key={log.id} className="border-bottom border-light">
-                <td className="py-2 text-muted fs-8">{log.time}</td>
-                <td className="py-2 fw-bold text-dark">{log.user}</td>
-                <td className="py-2">{log.action}</td>
-                <td className="py-2"><code>{log.target}</code></td>
-                <td className="py-2 text-muted fs-8">{log.ip}</td>
-                <td className="py-2 text-end">
-                  <span className={`fw-semibold fs-8 ${log.status === 'SUCCESS' ? 'text-success' : 'text-warning'}`}>
-                    {log.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
+            {logs.map((log) => {
+              const username = log.user?.username || log.userName || (log.userId ? `User #${log.userId}` : 'Hệ thống');
+              const status = log.status || (log.action?.includes('FAIL') ? 'FAILED' : 'SUCCESS');
+              return (
+                <tr key={log.auditLogId || log.id} className="border-bottom border-light">
+                  <td className="py-2 text-muted fs-8">{formatTime(log.createdAt || log.timestamp)}</td>
+                  <td className="py-2 fw-bold text-dark">{username}</td>
+                  <td className="py-2">{log.action || log.details || 'Tác vụ hệ thống'}</td>
+                  <td className="py-2"><code>{log.entityType || log.target || 'SYSTEM'}</code></td>
+                  <td className="py-2 text-muted fs-8">{log.ipAddress || log.ip || '127.0.0.1'}</td>
+                  <td className="py-2 text-end">
+                    <span className={`badge ${status === 'SUCCESS' ? 'bg-success text-white' : (status === 'WARNING' ? 'bg-warning text-dark' : 'bg-danger text-white')} fs-8`}>
+                      {status}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

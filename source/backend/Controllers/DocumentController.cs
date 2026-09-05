@@ -157,6 +157,29 @@ namespace QLNT_TKYC.API.Controllers
             return CreatedAtAction(nameof(GetDocument), new { id = doc.DocumentId }, doc);
         }
 
+        [HttpPut("{id:long}/verify")]
+        [Authorize(Roles = "ADMIN,REVIEWER,OFFICER")]
+        public async Task<ActionResult<Document>> VerifyDocument(long id, [FromBody] VerifyDocumentDto dto)
+        {
+            var status = dto.DocumentStatus?.Trim().ToUpperInvariant();
+            if (status is not ("VALID" or "APPROVED" or "REJECTED"))
+            {
+                return BadRequest(new { message = "DocumentStatus phải là VALID, APPROVED hoặc REJECTED." });
+            }
+
+            var document = await _context.Documents.FirstOrDefaultAsync(d => d.DocumentId == id);
+            if (document == null)
+            {
+                return NotFound(new { message = "Không tìm thấy tài liệu.", documentId = id });
+            }
+
+            document.DocumentStatus = status;
+            document.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            return Ok(document);
+        }
+
         // =====================================================
         // PUT: api/Document/1
         // Cập nhật tài liệu

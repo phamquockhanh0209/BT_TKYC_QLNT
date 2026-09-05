@@ -32,3 +32,10 @@ public class FullRegistrationRequestDto
     public string? RoomNumber { get; set; }
     public string? Note { get; set; }
 }
+
+public class ReviewActionDto
+{
+    public string Action { get; set; } = null!; // "PASS", "REQUEST_INFO", "REJECT"
+    public string? Note { get; set; }
+    public long? ApproverId { get; set; }
+}

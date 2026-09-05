@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, FileSpreadsheet, Clock, AlertTriangle, ArrowUpRight, TrendingUp } from 'lucide-react';
+import { Users, FileSpreadsheet, Clock, AlertTriangle, ArrowUpRight } from 'lucide-react';
 
 export default function AdminSystemStats({ overviewData }) {
   const stats = [
@@ -9,9 +9,9 @@ export default function AdminSystemStats({ overviewData }) {
       value: overviewData?.totalStudents ? overviewData.totalStudents.toLocaleString() : "1,248",
       unit: "SV",
       growth: "+12% so với kỳ trước",
-      icon: <Users size={22} />,
-      iconBg: "#e0f2fe",
-      iconColor: "#0284c7"
+      isAlert: false,
+      icon: <Users size={20} />,
+      iconBg: "#0f172a"
     },
     {
       id: 2,
@@ -19,9 +19,9 @@ export default function AdminSystemStats({ overviewData }) {
       value: overviewData?.totalRegistrations ? overviewData.totalRegistrations.toLocaleString() : "326",
       unit: "Hồ sơ",
       growth: `${overviewData?.approvalRatePercentage || 89.2}% Tỷ lệ duyệt`,
-      icon: <FileSpreadsheet size={22} />,
-      iconBg: "#dcfce7",
-      iconColor: "#00561f"
+      isAlert: false,
+      icon: <FileSpreadsheet size={20} />,
+      iconBg: "#15803d"
     },
     {
       id: 3,
@@ -29,9 +29,9 @@ export default function AdminSystemStats({ overviewData }) {
       value: overviewData?.pendingReviewRegistrations || "42",
       unit: "Chờ duyệt",
       growth: "Cần cán bộ thẩm định",
-      icon: <Clock size={22} />,
-      iconBg: "#fef3c7",
-      iconColor: "#d97706"
+      isAlert: false,
+      icon: <Clock size={20} />,
+      iconBg: "#b45309"
     },
     {
       id: 4,
@@ -39,9 +39,9 @@ export default function AdminSystemStats({ overviewData }) {
       value: overviewData?.overdueRegistrations || "18",
       unit: "Quá hạn",
       growth: "Cảnh báo vi phạm SLA",
-      icon: <AlertTriangle size={22} />,
-      iconBg: "#fee2e2",
-      iconColor: "#dc2626"
+      isAlert: true,
+      icon: <AlertTriangle size={20} />,
+      iconBg: "#dc2626"
     }
   ];
 
@@ -53,8 +53,8 @@ export default function AdminSystemStats({ overviewData }) {
             <div className="d-flex align-items-center justify-content-between mb-2">
               <span className="text-muted fw-semibold fs-7">{item.title}</span>
               <div 
-                className="d-flex align-items-center justify-content-center rounded-2"
-                style={{ width: '38px', height: '38px', backgroundColor: item.iconBg, color: item.iconColor }}
+                className="d-flex align-items-center justify-content-center rounded-2 text-white"
+                style={{ width: '36px', height: '36px', backgroundColor: item.iconBg }}
               >
                 {item.icon}
               </div>
@@ -66,9 +66,15 @@ export default function AdminSystemStats({ overviewData }) {
             </div>
 
             <div className="mt-2 pt-2 border-top d-flex align-items-center justify-content-between fs-8">
-              <span className={item.id === 4 ? "text-danger fw-semibold" : "text-muted"}>
-                {item.growth}
-              </span>
+              {item.isAlert ? (
+                <span className="badge bg-danger text-white">
+                  {item.growth}
+                </span>
+              ) : (
+                <span className="text-muted">
+                  {item.growth}
+                </span>
+              )}
               <ArrowUpRight size={14} className="text-muted" />
             </div>
           </div>

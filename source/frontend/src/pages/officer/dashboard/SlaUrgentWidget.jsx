@@ -1,34 +1,24 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, ArrowRight } from 'lucide-react';
+import { Clock, ArrowRight, AlertTriangle } from 'lucide-react';
 
-export default function SlaUrgentWidget() {
-  const items = [
-    {
-      id: 1,
-      code: "REG-2026-00156",
-      remaining: "Còn 1 ngày",
-      studentName: "Nguyễn Văn An",
-      studentCode: "2021001234",
-      deadline: "04/09/2026"
-    },
-    {
-      id: 2,
-      code: "REG-2026-00155",
-      remaining: "Còn 2 ngày",
-      studentName: "Trần Thị Bình",
-      studentCode: "2021001235",
-      deadline: "05/09/2026"
-    },
-    {
-      id: 3,
-      code: "REG-2026-00153",
-      remaining: "Còn 3 ngày",
-      studentName: "Phạm Thị Dung",
-      studentCode: "2021001237",
-      deadline: "06/09/2026"
-    }
-  ];
+export default function SlaUrgentWidget({ items = [] }) {
+  const urgentList = items.length > 0 ? items.slice(0, 4) : [];
+
+  const formatDeadline = (dateStr) => {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+  };
+
+  const getRemainingText = (dueAt) => {
+    if (!dueAt) return '—';
+    const diff = new Date(dueAt) - new Date();
+    const hours = Math.round(diff / (1000 * 60 * 60));
+    if (hours < 0) return { text: `Quá hạn ${Math.abs(hours)}h`, isOverdue: true };
+    if (hours < 24) return { text: `Còn ${hours}h`, isOverdue: false };
+    return { text: `Còn ${Math.ceil(hours / 24)} ngày`, isOverdue: false };
+  };
 
   return (
     <div className="app-card-clean mb-4">
@@ -48,29 +38,55 @@ export default function SlaUrgentWidget() {
 
       {/* Danh sách SLA khẩn cấp */}
       <div className="d-flex flex-column gap-3">
-        {items.map((item) => (
-          <div key={item.id} className="d-flex align-items-start gap-3 pb-2 border-bottom border-light">
-            <div 
-              className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
-              style={{ width: '32px', height: '32px', backgroundColor: '#fef3c7', color: '#d97706' }}
-            >
-              <Clock size={16} />
-            </div>
-
-            <div className="flex-grow-1">
-              <div className="d-flex align-items-center justify-content-between">
-                <span className="fw-bold fs-7 text-dark">{item.code}</span>
-                <span className="fw-semibold fs-8" style={{ color: '#16a34a' }}>{item.remaining}</span>
-              </div>
-              <div className="text-muted fs-8">
-                {item.studentName} <span className="mx-1">•</span> {item.studentCode}
-              </div>
-              <small className="text-muted fs-8">
-                Hạn: {item.deadline}
-              </small>
-            </div>
+        {urgentList.length === 0 ? (
+          <div className="py-3 text-center text-muted fs-8">
+            Không có hồ sơ nào sắp quá hạn SLA cần xử lý khẩn cấp.
           </div>
-        ))}
+        ) : (
+          urgentList.map((item) => {
+            const sla = item.slaTrackings?.[0];
+            const dueInfo = getRemainingText(sla?.dueAt);
+            const student = item.student || {};
+
+            return (
+              <div key={item.registrationId} className="d-flex align-items-start gap-3 pb-2 border-bottom border-light">
+                <div 
+                  className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                  style={{ 
+                    width: '32px', 
+                    height: '32px', 
+                    backgroundColor: dueInfo.isOverdue ? '#fee2e2' : '#fef3c7', 
+                    color: dueInfo.isOverdue ? '#dc2626' : '#d97706' 
+                  }}
+                >
+                  {dueInfo.isOverdue ? <AlertTriangle size={16} /> : <Clock size={16} />}
+                </div>
+
+                <div className="flex-grow-1">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <span className="fw-bold fs-7" style={{ color: 'var(--primary-color)' }}>
+                      {item.registrationCode || `#${item.registrationId}`}
+                    </span>
+                    <span 
+                      className="fw-bold fs-8" 
+                      style={{ color: dueInfo.isOverdue ? '#dc2626' : '#d97706' }}
+                    >
+                      {dueInfo.text}
+                    </span>
+                  </div>
+
+                  <div className="text-dark fs-8 fw-semibold mt-1">
+                    {student.fullName || 'Sinh viên'} <span className="text-muted fw-normal">({student.studentCode || '—'})</span>
+                  </div>
+
+                  <div className="text-muted fs-8 mt-1">
+                    Hạn chót: {formatDeadline(sla?.dueAt)}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

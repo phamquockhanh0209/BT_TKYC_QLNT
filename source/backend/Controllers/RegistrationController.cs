@@ -21,14 +21,48 @@ namespace QLNT_TKYC.API.Controllers
 
         // =====================================================
         // GET: api/Registration
-        // Lấy tất cả hồ sơ đăng ký
+        // Lấy tất cả hồ sơ đăng ký (có hỗ trợ lọc theo status & search)
         // =====================================================
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Registration>>> GetRegistrations()
+        public async Task<ActionResult<IEnumerable<Registration>>> GetRegistrations(
+            [FromQuery] string? status,
+            [FromQuery] string? search)
         {
-            var registrations = await _context.Registrations
+            var query = _context.Registrations
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(r => r.Student)
+                .Include(r => r.Addresses)
+                    .ThenInclude(a => a.Landlord)
+                .Include(r => r.Documents)
+                    .ThenInclude(d => d.DocumentVersions)
+                .Include(r => r.SlaTrackings)
+                .Include(r => r.Approvals)
+                    .ThenInclude(a => a.Approver)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(status) && status.ToUpper() != "ALL")
+            {
+                var upperStatus = status.Trim().ToUpper();
+                if (upperStatus == "OVERDUE")
+                {
+                    query = query.Where(r => r.SlaTrackings.Any(s => s.DueAt < DateTime.Now && s.Status != "COMPLETED") && r.Status != "APPROVED" && r.Status != "REJECTED");
+                }
+                else
+                {
+                    query = query.Where(r => r.Status == upperStatus);
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim().ToLower();
+                query = query.Where(r =>
+                    r.RegistrationCode.ToLower().Contains(s) ||
+                    (r.Student != null && (r.Student.FullName.ToLower().Contains(s) || r.Student.StudentCode.ToLower().Contains(s))));
+            }
+
+            var registrations = await query
                 .OrderByDescending(r => r.RegistrationId)
                 .ToListAsync();
 
@@ -37,14 +71,22 @@ namespace QLNT_TKYC.API.Controllers
 
         // =====================================================
         // GET: api/Registration/1
-        // Lấy hồ sơ theo ID
+        // Lấy hồ sơ theo ID (kèm toàn bộ quan hệ)
         // =====================================================
         [HttpGet("{id:long}")]
         public async Task<ActionResult<Registration>> GetRegistration(long id)
         {
             var registration = await _context.Registrations
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(r => r.Student)
+                .Include(r => r.Addresses)
+                    .ThenInclude(a => a.Landlord)
+                .Include(r => r.Documents)
+                    .ThenInclude(d => d.DocumentVersions)
+                .Include(r => r.SlaTrackings)
+                .Include(r => r.Approvals)
+                    .ThenInclude(a => a.Approver)
                 .FirstOrDefaultAsync(r => r.RegistrationId == id);
 
             if (registration == null)
@@ -85,6 +127,7 @@ namespace QLNT_TKYC.API.Controllers
                 .Include(r => r.Addresses)
                     .ThenInclude(a => a.Landlord)
                 .Include(r => r.Documents)
+                    .ThenInclude(d => d.DocumentVersions)
                 .Where(r => r.StudentId == studentId)
                 .OrderByDescending(r => r.RegistrationId)
                 .ToListAsync();
@@ -203,6 +246,168 @@ namespace QLNT_TKYC.API.Controllers
 
                 await transaction.CommitAsync();
                 return Ok(result);
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        // =====================================================
+        // POST: api/Registration/1/review-action
+        // Thẩm định hồ sơ ngoại trú (Reviewer action: PASS, REQUEST_INFO, REJECT)
+        // =====================================================
+        [HttpPost("{id:long}/review-action")]
+        [Authorize(Roles = "ADMIN,REVIEWER,OFFICER")]
+        public async Task<IActionResult> ReviewAction(long id, [FromBody] ReviewActionDto dto)
+        {
+            var registration = await _context.Registrations
+                .Include(r => r.Student)
+                .Include(r => r.Addresses)
+                .Include(r => r.Documents)
+                .Include(r => r.SlaTrackings)
+                .FirstOrDefaultAsync(r => r.RegistrationId == id);
+
+            if (registration == null)
+            {
+                return NotFound(new { message = "Không tìm thấy hồ sơ đăng ký.", registrationId = id });
+            }
+
+            var action = dto.Action?.Trim().ToUpper();
+            if (action != "APPROVE" && action != "PASS" && action != "REQUEST_INFO" && action != "REJECT")
+            {
+                return BadRequest(new { message = "Hành động xử lý không hợp lệ. Cho phép: APPROVE, PASS, REQUEST_INFO, REJECT." });
+            }
+
+            long? approverId = dto.ApproverId;
+            if (!approverId.HasValue)
+            {
+                var username = User.Identity?.Name;
+                if (!string.IsNullOrEmpty(username))
+                {
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+                    approverId = user?.UserId;
+                }
+            }
+
+            if (!approverId.HasValue || !await _context.Users.AnyAsync(u => u.UserId == approverId.Value))
+            {
+                return BadRequest(new { message = "Không xác định được tài khoản cán bộ xử lý." });
+            }
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                string newStatus;
+                string decision;
+                string notifTitle;
+                string notifMessage;
+
+                if (action == "APPROVE")
+                {
+                    newStatus = "APPROVED";
+                    decision = "APPROVED";
+                    registration.ApprovedAt = DateTime.Now;
+                    notifTitle = "Hồ sơ ngoại trú đã được duyệt chính thức";
+                    notifMessage = $"Chúc mừng! Hồ sơ {registration.RegistrationCode} của bạn đã được Cán bộ Quản lý phê duyệt chính thức. Nơi ở ngoại trú hiện đã có hiệu lực trên hệ thống.";
+                    
+                    // Cập nhật địa chỉ sang hiệu lực
+                    foreach (var addr in registration.Addresses)
+                    {
+                        addr.Status = "CURRENT";
+                        addr.UpdatedAt = DateTime.Now;
+                    }
+
+                    // Phê duyệt hồ sơ chính thức cũng phê duyệt các giấy tờ đính kèm.
+                    foreach (var document in registration.Documents)
+                    {
+                        document.DocumentStatus = "VALID";
+                        document.UpdatedAt = DateTime.Now;
+                    }
+                }
+                else if (action == "PASS")
+                {
+                    newStatus = "UNDER_REVIEW";
+                    decision = "APPROVED";
+                    notifTitle = "Hồ sơ đã qua vòng thẩm định";
+                    notifMessage = $"Hồ sơ {registration.RegistrationCode} của bạn đã được Cán bộ thẩm định đạt yêu cầu và chuyển tiếp sang bước phê duyệt cấp trường. Ghi chú: {dto.Note ?? "Đầy đủ hồ sơ, hợp lệ."}";
+                }
+                else if (action == "REQUEST_INFO")
+                {
+                    newStatus = "REJECTED";
+                    decision = "REJECTED";
+                    registration.RejectionReason = dto.Note ?? "Cần bổ sung giấy tờ minh chứng.";
+                    notifTitle = "Yêu cầu bổ sung hồ sơ ngoại trú";
+                    notifMessage = $"Cán bộ yêu cầu bạn bổ sung/chỉnh sửa giấy tờ cho hồ sơ {registration.RegistrationCode}. Lý do: {dto.Note}";
+                }
+                else // REJECT
+                {
+                    newStatus = "REJECTED";
+                    decision = "REJECTED";
+                    registration.RejectedAt = DateTime.Now;
+                    registration.RejectionReason = dto.Note ?? "Hồ sơ không đủ điều kiện.";
+                    notifTitle = "Hồ sơ ngoại trú bị từ chối";
+                    notifMessage = $"Hồ sơ {registration.RegistrationCode} của bạn đã bị từ chối. Lý do: {dto.Note}";
+                }
+
+                registration.Status = newStatus;
+                registration.UpdatedAt = DateTime.Now;
+
+                // 1. Tạo Approval record
+                var approval = new Approval
+                {
+                    RegistrationId = registration.RegistrationId,
+                    ApproverId = approverId.Value,
+                    ApprovalType = "REGISTRATION",
+                    Decision = decision,
+                    Reason = dto.Note ?? (action == "PASS" ? "Hồ sơ hợp lệ" : "Từ chối/Bổ sung"),
+                    DecidedAt = DateTime.Now
+                };
+                _context.Approvals.Add(approval);
+
+                // 2. Tạo Notification cho sinh viên nếu có tài khoản User
+                if (registration.Student != null)
+                {
+                    var studentUser = await _context.Users.FirstOrDefaultAsync(u => u.Username == registration.Student.StudentCode);
+                    if (studentUser != null)
+                    {
+                        var notif = new Notification
+                        {
+                            UserId = studentUser.UserId,
+                            RegistrationId = registration.RegistrationId,
+                            NotificationType = (action == "PASS" || action == "APPROVE") ? "SUCCESS" : "WARNING",
+                            Title = notifTitle,
+                            Message = notifMessage,
+                            IsRead = false,
+                            CreatedAt = DateTime.Now
+                        };
+                        _context.Notifications.Add(notif);
+                    }
+                }
+
+                // 3. Cập nhật SLA tracking nếu có
+                var sla = registration.SlaTrackings.FirstOrDefault();
+                if (sla != null && action == "PASS")
+                {
+                    sla.Status = "IN_PROGRESS";
+                }
+                else if (sla != null)
+                {
+                    sla.Status = "COMPLETED";
+                    sla.CompletedAt = DateTime.Now;
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return Ok(new
+                {
+                    message = action == "APPROVE" ? "Phê duyệt chính thức hồ sơ thành công." : "Thẩm định hồ sơ thành công.",
+                    registrationId = registration.RegistrationId,
+                    status = registration.Status,
+                    action = action
+                });
             }
             catch
             {

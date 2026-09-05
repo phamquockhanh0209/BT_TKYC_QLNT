@@ -18,13 +18,16 @@ namespace QLNT_TKYC.API.Controllers
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             return Ok(await _context.Users.AsNoTracking()
+                .Include(u => u.UserRoleUsers).ThenInclude(ur => ur.Role)
                 .OrderBy(u => u.UserId).ToListAsync());
         }
 
         [HttpGet("{id:long}")]
         public async Task<ActionResult<User>> GetUser(long id)
         {
-            var item = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == id);
+            var item = await _context.Users.AsNoTracking()
+                .Include(u => u.UserRoleUsers).ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.UserId == id);
             return item == null ? NotFound(new { message = "Không tìm thấy người dùng.", userId = id }) : Ok(item);
         }
 

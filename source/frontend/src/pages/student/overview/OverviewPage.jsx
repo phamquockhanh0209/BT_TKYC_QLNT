@@ -55,11 +55,14 @@ export default function OverviewPage() {
     loadData();
   }, []);
 
-  // Lấy hồ sơ đang hiệu lực (ưu tiên APPROVED > ACTIVE > SUBMITTED)
+  // Lấy hồ sơ đang hiệu lực (ưu tiên APPROVED > ACTIVE > UNDER_REVIEW > PROCESSING > SUBMITTED)
   const activeReg =
     registrations.find(r => r.status === 'APPROVED') ||
     registrations.find(r => r.status === 'ACTIVE') ||
+    registrations.find(r => r.status === 'UNDER_REVIEW') ||
+    registrations.find(r => r.status === 'PROCESSING') ||
     registrations.find(r => r.status === 'SUBMITTED') ||
+    registrations[0] ||
     null;
 
   const latestAddress = activeReg?.addresses?.[0] || null;
@@ -95,6 +98,16 @@ export default function OverviewPage() {
         .filter(Boolean)
         .join(', ')
     : '—';
+
+  const houseImageDocument = activeReg?.documents?.find(document =>
+    document.documentType === 'HOUSE_IMAGE' &&
+    (['APPROVED', 'VALID'].includes(document.documentStatus) || activeReg.status === 'APPROVED')
+  );
+  const houseImageVersion = houseImageDocument?.documentVersions?.[0];
+  const houseImagePath = houseImageVersion?.filePath || houseImageDocument?.filePath;
+  const houseImageUrl = houseImagePath
+    ? (houseImagePath.startsWith('http') ? houseImagePath : `http://localhost:5005${houseImagePath.startsWith('/') ? '' : '/'}${houseImagePath}`)
+    : undefined;
 
   // --- Loading / Error ---
   if (loading) {
@@ -145,6 +158,7 @@ export default function OverviewPage() {
               contractStartDate={formatDate(activeReg.startDate)}
               contractEndDate={formatDate(activeReg.expiryDate || latestAddress?.endDate)}
               daysRemaining={calcDaysRemaining(activeReg.expiryDate || latestAddress?.endDate)}
+              imageUrl={houseImageUrl}
             />
           ) : (
             <div className="app-card-clean mb-4 text-center py-5">

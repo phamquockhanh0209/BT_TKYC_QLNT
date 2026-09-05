@@ -17,7 +17,9 @@ namespace QLNT_TKYC.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Role>>> GetRoles()
         {
-            return Ok(await _context.Roles.AsNoTracking().OrderBy(r => r.RoleId).ToListAsync());
+            return Ok(await _context.Roles.AsNoTracking()
+                .Include(r => r.UserRoles)
+                .OrderBy(r => r.RoleId).ToListAsync());
         }
 
         [HttpGet("{id:long}")]

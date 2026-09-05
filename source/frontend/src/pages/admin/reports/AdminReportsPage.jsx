@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Download, BarChart2, School, FileText, Clock } from 'lucide-react';
-import axiosClient from '../../../api/axiosClient';
+import adminService from '../../../api/adminService';
 
 export default function AdminReportsPage() {
   const [overview, setOverview] = useState(null);
@@ -11,14 +11,14 @@ export default function AdminReportsPage() {
   useEffect(() => {
     async function fetchAll() {
       try {
-        const [ovRes, facRes, monRes] = await Promise.allSettled([
-          axiosClient.get('/Report/overview'),
-          axiosClient.get('/Report/by-faculty'),
-          axiosClient.get('/Report/monthly-summary')
+        const [ovRes, facRes, timeRes] = await Promise.allSettled([
+          adminService.getOverview(),
+          adminService.getStatsByFaculty(),
+          adminService.getStatsByTime()
         ]);
         if (ovRes.status === 'fulfilled') setOverview(ovRes.value);
         if (facRes.status === 'fulfilled' && Array.isArray(facRes.value)) setFacultyData(facRes.value);
-        if (monRes.status === 'fulfilled' && Array.isArray(monRes.value)) setMonthlyData(monRes.value);
+        if (timeRes.status === 'fulfilled' && Array.isArray(timeRes.value)) setMonthlyData(timeRes.value);
       } catch (e) {
         console.error("Report data error:", e);
       } finally {

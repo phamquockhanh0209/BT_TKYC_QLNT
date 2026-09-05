@@ -41,7 +41,7 @@ export default function SlaHealthWidget() {
         </div>
         <div>
           <div className="text-muted fs-8">Tỷ lệ xử lý đúng hạn cam kết</div>
-          <div className="fw-bolder fs-2" style={{ color: '#011857' }}>
+          <div className="fw-bolder fs-2 text-dark">
             {slaData.onTimeRatePercentage}%
           </div>
         </div>
@@ -51,13 +51,13 @@ export default function SlaHealthWidget() {
         <div className="col-6">
           <div className="p-2 border rounded bg-light">
             <div className="text-muted fs-8">Đúng hạn</div>
-            <div className="fw-bold text-success fs-6">{slaData.onTimeCount} hồ sơ</div>
+            <div className="mt-1"><span className="badge bg-success text-white fs-7">{slaData.onTimeCount} hồ sơ</span></div>
           </div>
         </div>
         <div className="col-6">
           <div className="p-2 border rounded bg-light">
             <div className="text-muted fs-8">Quá hạn</div>
-            <div className="fw-bold text-danger fs-6">{slaData.overdueCount} hồ sơ</div>
+            <div className="mt-1"><span className="badge bg-danger text-white fs-7">{slaData.overdueCount} hồ sơ</span></div>
           </div>
         </div>
         <div className="col-12 mt-2">

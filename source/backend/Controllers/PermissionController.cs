@@ -17,7 +17,9 @@ namespace QLNT_TKYC.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Permission>>> GetPermissions()
         {
-            return Ok(await _context.Permissions.AsNoTracking().OrderBy(p => p.PermissionId).ToListAsync());
+            return Ok(await _context.Permissions.AsNoTracking()
+                .Include(p => p.RolePermissions).ThenInclude(rp => rp.Role)
+                .OrderBy(p => p.PermissionId).ToListAsync());
         }
 
         [HttpGet("{id:long}")]

@@ -13,7 +13,7 @@ export default function AdminHeader({ adminName = "System Administrator", roleTi
         {/* Tiêu đề & Trạng thái kết nối Server */}
         <div className="d-flex align-items-center gap-3">
           <div>
-            <h1 className="fw-bolder fs-1 mb-0" style={{ color: 'var(--h1)', fontFamily: "'Times New Roman', Times, serif", letterSpacing: '0,01em' }}>
+            <h1 className="fw-bolder fs-3 mb-0 text-dark" style={{ letterSpacing: '-0.02em' }}>
               TỔNG QUAN HỆ THỐNG
             </h1>
           </div>

@@ -11,7 +11,8 @@ export default function CurrentResidenceCard({
   status = "ACTIVE",
   contractStartDate = "01/09/2026",
   contractEndDate = "01/09/2027",
-  daysRemaining = 286
+  daysRemaining = 286,
+  imageUrl
 }) {
   return (
     <div className="app-card-clean mb-4">
@@ -77,7 +78,7 @@ export default function CurrentResidenceCard({
               </span>
               <span>
                 <span className={`badge-pill-custom ${['APPROVED', 'ACTIVE'].includes(status) ? 'badge-active' : status === 'REJECTED' ? 'badge-rejected' : 'badge-pending'}`}>
-                  {status === 'SUBMITTED' ? 'CHỜ XÁC NHẬN' : status === 'PROCESSING' ? 'ĐANG XỬ LÝ' : status === 'APPROVED' ? 'ĐÃ DUYỆT' : status === 'ACTIVE' ? 'ĐANG HOẠT ĐỘNG' : status}
+                  {status === 'SUBMITTED' ? 'CHỜ XÁC NHẬN' : status === 'UNDER_REVIEW' ? 'ĐANG XÉT DUYỆT' : status === 'PROCESSING' ? 'ĐANG XỬ LÝ' : status === 'APPROVED' ? 'ĐÃ DUYỆT' : status === 'ACTIVE' ? 'ĐANG HOẠT ĐỘNG' : status}
                 </span>
               </span>
             </div>
@@ -109,7 +110,7 @@ export default function CurrentResidenceCard({
         {/* Cột phải: Bản vẽ kiến trúc nhà trọ */}
         <div className="col-lg-5 col-md-12 text-center">
           <div className="p-2 rounded-3 bg-light border border-light">
-            <HouseIllustration height="190px" />
+            <HouseIllustration height="190px" imageUrl={imageUrl} />
           </div>
         </div>
       </div>

@@ -142,3 +142,46 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #f59e0b;
   color: #ffffff;
 }
+
+/* Định dạng mã định danh: chữ đen/xám đậm, nền xám nhạt, không dùng chữ màu hồng/đỏ */
+code {
+  color: #0f172a !important;
+  background-color: #f1f5f9 !important;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.85em;
+  border: 1px solid #e2e8f0;
+}
+
+/* Huy hiệu: nền có màu, chữ luôn là Trắng hoặc Đen rõ nét */
+.badge-status-solid-success {
+  background-color: #15803d !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.badge-status-solid-danger {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.badge-status-solid-warning {
+  background-color: #f59e0b !important;
+  color: #0f172a !important;
+  font-weight: 600;
+}
+
+.badge-status-solid-info {
+  background-color: #0284c7 !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.badge-status-solid-dark {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
