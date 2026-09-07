@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QLNT_TKYC.API.Data;
 using QLNT_TKYC.API.Models;
+using QLNT_TKYC.API.Services.Interfaces;
 
 namespace QLNT_TKYC.API.Controllers
 {
@@ -12,9 +13,15 @@ namespace QLNT_TKYC.API.Controllers
     public class DocumentVersionController : ControllerBase
     {
         private readonly AppDbContext _context;
-        public DocumentVersionController(AppDbContext context) => _context = context;
+        private readonly IAccessControlService _accessControl;
+        public DocumentVersionController(AppDbContext context, IAccessControlService accessControl)
+        {
+            _context = context;
+            _accessControl = accessControl;
+        }
 
         [HttpGet]
+        [Authorize(Roles = "ADMIN,RECEIVER,OFFICER,PROCESSOR,REVIEWER,APPROVER,SENIOR_APPROVER")]
         public async Task<ActionResult<IEnumerable<DocumentVersion>>> GetDocumentVersions()
         {
             return Ok(await _context.DocumentVersions.AsNoTracking()
@@ -25,6 +32,13 @@ namespace QLNT_TKYC.API.Controllers
         [HttpGet("{id:long}")]
         public async Task<ActionResult<DocumentVersion>> GetDocumentVersion(long id)
         {
+            var documentId = await _context.DocumentVersions
+                .Where(v => v.DocumentVersionId == id)
+                .Select(v => (long?)v.DocumentId)
+                .FirstOrDefaultAsync();
+            if (!documentId.HasValue || !await _accessControl.CanAccessDocumentAsync(User, documentId.Value))
+                return Forbid();
+
             var item = await _context.DocumentVersions.AsNoTracking()
                 .Include(v => v.Document).Include(v => v.UploadedByNavigation)
                 .FirstOrDefaultAsync(v => v.DocumentVersionId == id);
@@ -34,6 +48,9 @@ namespace QLNT_TKYC.API.Controllers
         [HttpGet("document/{documentId:long}")]
         public async Task<ActionResult<IEnumerable<DocumentVersion>>> GetByDocument(long documentId)
         {
+            if (!await _accessControl.CanAccessDocumentAsync(User, documentId))
+                return Forbid();
+
             if (!await _context.Documents.AnyAsync(d => d.DocumentId == documentId))
                 return NotFound(new { message = "Không tìm thấy tài liệu.", documentId });
             return Ok(await _context.DocumentVersions.AsNoTracking()
@@ -42,6 +59,7 @@ namespace QLNT_TKYC.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "ADMIN,OFFICER,PROCESSOR,REVIEWER")]
         public async Task<ActionResult<DocumentVersion>> CreateDocumentVersion(DocumentVersion item)
         {
             if (!await _context.Documents.AnyAsync(d => d.DocumentId == item.DocumentId))
@@ -76,6 +94,7 @@ namespace QLNT_TKYC.API.Controllers
         }
 
         [HttpPut("{id:long}")]
+        [Authorize(Roles = "ADMIN,OFFICER,PROCESSOR,REVIEWER")]
         public async Task<IActionResult> UpdateDocumentVersion(long id, DocumentVersion item)
         {
             if (id != item.DocumentVersionId) return BadRequest(new { message = "ID trên URL không trùng DocumentVersionId." });
@@ -115,6 +134,7 @@ namespace QLNT_TKYC.API.Controllers
         }
 
         [HttpDelete("{id:long}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> DeleteDocumentVersion(long id)
         {
             var item = await _context.DocumentVersions.FindAsync(id);

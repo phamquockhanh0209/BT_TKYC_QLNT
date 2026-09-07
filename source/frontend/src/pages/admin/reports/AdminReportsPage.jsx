@@ -50,13 +50,13 @@ export default function AdminReportsPage() {
     <div>
       <div className="d-flex align-items-center justify-content-between mb-4">
         <div>
-          <h2 className="fw-bolder mb-1" style={{ fontFamily: "'Times New Roman', Times, serif" }}>Báo Cáo & Thống Kê Hệ Thống</h2>
+          <h2 className="fw-bold mb-1 text-dark">Báo Cáo & Thống Kê Hệ Thống</h2>
           <p className="text-muted mb-0">
             Tổng hợp dữ liệu từ Report API — 
             {loading ? (
-              <span className="text-warning fw-semibold ms-1">🔄 Đang tải dữ liệu thực từ Backend...</span>
+              <span className="badge bg-warning text-dark ms-1">🔄 Đang tải...</span>
             ) : (
-              <span className="text-success fw-semibold ms-1">✅ Đã kết nối API Backend thành công</span>
+              <span className="badge bg-success text-white ms-1">✅ Đã kết nối API Backend</span>
             )}
           </p>
         </div>
@@ -82,8 +82,8 @@ export default function AdminReportsPage() {
         <div className="col-md-4">
           <div className="app-card-clean bg-white border p-3">
             <div className="text-muted fs-8 mb-1">Tổng hồ sơ ngoại trú</div>
-            <div className="fw-bolder fs-2" style={{ color: '#1d4ed8' }}>{displayOverview.totalRegistrations}</div>
-            <div className="fs-8 text-success fw-semibold">Tỷ lệ phê duyệt: {displayOverview.approvalRatePercentage}%</div>
+            <div className="fw-bolder fs-2 text-dark">{displayOverview.totalRegistrations}</div>
+            <div className="mt-1"><span className="badge bg-success text-white">Tỷ lệ phê duyệt: {displayOverview.approvalRatePercentage}%</span></div>
           </div>
         </div>
         <div className="col-md-4">
@@ -116,9 +116,9 @@ export default function AdminReportsPage() {
               {displayFaculty.map((row, idx) => (
                 <tr key={idx} className="border-bottom border-light">
                   <td className="fw-semibold text-dark">{row.faculty}</td>
-                  <td className="text-center fw-bold" style={{ color: '#46043f' }}>{row.totalStudents}</td>
-                  <td className="text-center fw-bold" style={{ color: '#1d4ed8' }}>{row.offCampusStudents}</td>
-                  <td className="text-end fw-bold text-success">{row.percentage}%</td>
+                  <td className="text-center fw-bold text-dark">{row.totalStudents}</td>
+                  <td className="text-center fw-bold text-dark">{row.offCampusStudents}</td>
+                  <td className="text-end"><span className="badge bg-success text-white">{row.percentage}%</span></td>
                   <td className="text-end" style={{ width: '140px' }}>
                     <div className="progress" style={{ height: '8px' }}>
                       <div

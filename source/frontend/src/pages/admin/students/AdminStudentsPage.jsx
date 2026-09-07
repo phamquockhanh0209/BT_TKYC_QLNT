@@ -132,7 +132,7 @@ export default function AdminStudentsPage() {
                     <td className="text-muted fs-8">{s.phone || '—'}</td>
                     <td className="text-muted fs-8">{s.email || '—'}</td>
                     <td className="text-end">
-                      <span className="badge bg-success-subtle text-success fs-8">
+                      <span className="badge bg-success text-white fs-8">
                         {s.status || 'ACTIVE'}
                       </span>
                     </td>

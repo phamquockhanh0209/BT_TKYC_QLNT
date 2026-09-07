@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QLNT_TKYC.API.Data;
 using QLNT_TKYC.API.Models;
+using QLNT_TKYC.API.Services.Interfaces;
+using System.Security.Claims;
 
 namespace QLNT_TKYC.API.Controllers
 {
@@ -12,9 +14,15 @@ namespace QLNT_TKYC.API.Controllers
     public class NotificationController : ControllerBase
     {
         private readonly AppDbContext _context;
-        public NotificationController(AppDbContext context) => _context = context;
+        private readonly IAccessControlService _accessControl;
+        public NotificationController(AppDbContext context, IAccessControlService accessControl)
+        {
+            _context = context;
+            _accessControl = accessControl;
+        }
 
         [HttpGet]
+        [Authorize(Roles = "ADMIN,RECEIVER,OFFICER,PROCESSOR,REVIEWER,APPROVER,SENIOR_APPROVER")]
         public async Task<ActionResult<IEnumerable<Notification>>> GetNotifications()
         {
             return Ok(await _context.Notifications.AsNoTracking()
@@ -25,6 +33,13 @@ namespace QLNT_TKYC.API.Controllers
         [HttpGet("{id:long}")]
         public async Task<ActionResult<Notification>> GetNotification(long id)
         {
+            var itemUserId = await _context.Notifications
+                .Where(n => n.NotificationId == id)
+                .Select(n => (long?)n.UserId)
+                .FirstOrDefaultAsync();
+            if (!itemUserId.HasValue || !await CanAccessUserAsync(itemUserId.Value))
+                return Forbid();
+
             var item = await _context.Notifications.AsNoTracking()
                 .Include(n => n.User).Include(n => n.Registration).Include(n => n.Request)
                 .FirstOrDefaultAsync(n => n.NotificationId == id);
@@ -34,6 +49,9 @@ namespace QLNT_TKYC.API.Controllers
         [HttpGet("user/{userId:long}")]
         public async Task<ActionResult<IEnumerable<Notification>>> GetByUser(long userId)
         {
+            if (!await CanAccessUserAsync(userId))
+                return Forbid();
+
             if (!await _context.Users.AnyAsync(u => u.UserId == userId))
                 return NotFound(new { message = "Không tìm thấy người dùng.", userId });
             return Ok(await _context.Notifications.AsNoTracking()
@@ -41,6 +59,7 @@ namespace QLNT_TKYC.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "ADMIN,OFFICER,PROCESSOR,REVIEWER")]
         public async Task<ActionResult<Notification>> CreateNotification(Notification item)
         {
             if (!await _context.Users.AnyAsync(u => u.UserId == item.UserId))
@@ -58,6 +77,7 @@ namespace QLNT_TKYC.API.Controllers
         }
 
         [HttpPut("{id:long}")]
+        [Authorize(Roles = "ADMIN,OFFICER,PROCESSOR,REVIEWER")]
         public async Task<IActionResult> UpdateNotification(long id, Notification item)
         {
             if (id != item.NotificationId) return BadRequest(new { message = "ID trên URL không trùng NotificationId." });
@@ -84,6 +104,7 @@ namespace QLNT_TKYC.API.Controllers
         {
             var item = await _context.Notifications.FindAsync(id);
             if (item == null) return NotFound(new { message = "Không tìm thấy thông báo.", notificationId = id });
+            if (!await CanAccessUserAsync(item.UserId)) return Forbid();
             item.IsRead = true;
             item.ReadAt = DateTime.Now;
             await _context.SaveChangesAsync();
@@ -91,6 +112,7 @@ namespace QLNT_TKYC.API.Controllers
         }
 
         [HttpDelete("{id:long}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> DeleteNotification(long id)
         {
             var item = await _context.Notifications.FindAsync(id);
@@ -98,6 +120,15 @@ namespace QLNT_TKYC.API.Controllers
             _context.Notifications.Remove(item);
             await _context.SaveChangesAsync();
             return NoContent();
+        }
+
+        private async Task<bool> CanAccessUserAsync(long userId)
+        {
+            if (_accessControl.IsStaff(User))
+                return true;
+
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return long.TryParse(currentUserId, out var parsedId) && parsedId == userId;
         }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using QLNT_TKYC.API.Data;
 using QLNT_TKYC.API.Models;
 using QLNT_TKYC.API.DTOs.Registration;
+using QLNT_TKYC.API.Services.Interfaces;
 
 namespace QLNT_TKYC.API.Controllers
 {
@@ -13,10 +14,12 @@ namespace QLNT_TKYC.API.Controllers
     public class RegistrationController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IAccessControlService _accessControl;
 
-        public RegistrationController(AppDbContext context)
+        public RegistrationController(AppDbContext context, IAccessControlService accessControl)
         {
             _context = context;
+            _accessControl = accessControl;
         }
 
         // =====================================================
@@ -24,6 +27,7 @@ namespace QLNT_TKYC.API.Controllers
         // Lấy tất cả hồ sơ đăng ký (có hỗ trợ lọc theo status & search)
         // =====================================================
         [HttpGet]
+        [Authorize(Roles = "ADMIN,RECEIVER,OFFICER,PROCESSOR,REVIEWER,APPROVER,SENIOR_APPROVER")]
         public async Task<ActionResult<IEnumerable<Registration>>> GetRegistrations(
             [FromQuery] string? status,
             [FromQuery] string? search)
@@ -76,6 +80,9 @@ namespace QLNT_TKYC.API.Controllers
         [HttpGet("{id:long}")]
         public async Task<ActionResult<Registration>> GetRegistration(long id)
         {
+            if (!await _accessControl.CanAccessRegistrationAsync(User, id))
+                return Forbid();
+
             var registration = await _context.Registrations
                 .AsNoTracking()
                 .AsSplitQuery()
@@ -109,6 +116,9 @@ namespace QLNT_TKYC.API.Controllers
         public async Task<ActionResult<IEnumerable<Registration>>> GetRegistrationsByStudent(
             long studentId)
         {
+            if (!await _accessControl.CanAccessStudentAsync(User, studentId))
+                return Forbid();
+
             var studentExists = await _context.Students
                 .AnyAsync(s => s.StudentId == studentId);
 
@@ -140,24 +150,15 @@ namespace QLNT_TKYC.API.Controllers
         // Nộp hồ sơ đăng ký ngoại trú hoàn chỉnh (gồm địa chỉ, chủ trọ, SLA)
         // =====================================================
         [HttpPost("submit-full")]
+        [Authorize(Roles = "STUDENT")]
         public async Task<ActionResult<Registration>> SubmitFullRegistration(
             [FromBody] FullRegistrationRequestDto dto)
         {
-            // 1. Tìm hoặc kiểm tra sinh viên
-            Student? student = null;
-            if (dto.StudentId > 0)
-            {
-                student = await _context.Students.FirstOrDefaultAsync(s => s.StudentId == dto.StudentId);
-            }
-            if (student == null && !string.IsNullOrWhiteSpace(dto.StudentCode))
-            {
-                student = await _context.Students.FirstOrDefaultAsync(s => s.StudentCode == dto.StudentCode);
-            }
+            // The authenticated account, not the request body, determines ownership.
+            var student = await _accessControl.GetCurrentStudentAsync(User);
 
             if (student == null)
-            {
-                return BadRequest(new { message = "Không tìm thấy thông tin sinh viên tương ứng." });
-            }
+                return Forbid();
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -259,7 +260,7 @@ namespace QLNT_TKYC.API.Controllers
         // Thẩm định hồ sơ ngoại trú (Reviewer action: PASS, REQUEST_INFO, REJECT)
         // =====================================================
         [HttpPost("{id:long}/review-action")]
-        [Authorize(Roles = "ADMIN,REVIEWER,OFFICER")]
+        [Authorize(Roles = "ADMIN,REVIEWER,OFFICER,APPROVER,SENIOR_APPROVER")]
         public async Task<IActionResult> ReviewAction(long id, [FromBody] ReviewActionDto dto)
         {
             var registration = await _context.Registrations
@@ -280,16 +281,16 @@ namespace QLNT_TKYC.API.Controllers
                 return BadRequest(new { message = "Hành động xử lý không hợp lệ. Cho phép: APPROVE, PASS, REQUEST_INFO, REJECT." });
             }
 
-            long? approverId = dto.ApproverId;
-            if (!approverId.HasValue)
-            {
-                var username = User.Identity?.Name;
-                if (!string.IsNullOrEmpty(username))
-                {
-                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
-                    approverId = user?.UserId;
-                }
-            }
+            var canApprove = User.IsInRole("ADMIN") || User.IsInRole("APPROVER") || User.IsInRole("SENIOR_APPROVER");
+            var canReview = canApprove || User.IsInRole("OFFICER") || User.IsInRole("REVIEWER") || User.IsInRole("RECEIVER") || User.IsInRole("PROCESSOR");
+            if ((action is "APPROVE" or "REJECT") && !canApprove || (action is "PASS" or "REQUEST_INFO") && !canReview)
+                return Forbid();
+
+            var username = User.Identity?.Name;
+            var currentUser = string.IsNullOrWhiteSpace(username)
+                ? null
+                : await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+            long? approverId = currentUser?.UserId;
 
             if (!approverId.HasValue || !await _context.Users.AnyAsync(u => u.UserId == approverId.Value))
             {
@@ -335,9 +336,8 @@ namespace QLNT_TKYC.API.Controllers
                 }
                 else if (action == "REQUEST_INFO")
                 {
-                    newStatus = "REJECTED";
-                    decision = "REJECTED";
-                    registration.RejectionReason = dto.Note ?? "Cần bổ sung giấy tờ minh chứng.";
+                    newStatus = "NEED_MORE_INFO";
+                    decision = "NEED_MORE_INFO";
                     notifTitle = "Yêu cầu bổ sung hồ sơ ngoại trú";
                     notifMessage = $"Cán bộ yêu cầu bạn bổ sung/chỉnh sửa giấy tờ cho hồ sơ {registration.RegistrationCode}. Lý do: {dto.Note}";
                 }
@@ -421,6 +421,7 @@ namespace QLNT_TKYC.API.Controllers
         // Tạo hồ sơ đăng ký
         // =====================================================
         [HttpPost]
+        [Authorize(Roles = "ADMIN")]
         public async Task<ActionResult<Registration>> CreateRegistration(
             Registration registration)
         {
@@ -472,6 +473,7 @@ namespace QLNT_TKYC.API.Controllers
         // Cập nhật hồ sơ đăng ký
         // =====================================================
         [HttpPut("{id:long}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> UpdateRegistration(
             long id,
             Registration registration)
@@ -566,6 +568,7 @@ namespace QLNT_TKYC.API.Controllers
         // Xóa hồ sơ đăng ký
         // =====================================================
         [HttpDelete("{id:long}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> DeleteRegistration(long id)
         {
             var registration = await _context.Registrations

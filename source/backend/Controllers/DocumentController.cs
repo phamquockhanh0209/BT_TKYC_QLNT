@@ -17,11 +17,13 @@ namespace QLNT_TKYC.API.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IDocumentService _documentService;
+        private readonly IAccessControlService _accessControl;
 
-        public DocumentController(AppDbContext context, IDocumentService documentService)
+        public DocumentController(AppDbContext context, IDocumentService documentService, IAccessControlService accessControl)
         {
             _context = context;
             _documentService = documentService;
+            _accessControl = accessControl;
         }
 
         // =====================================================
@@ -29,6 +31,7 @@ namespace QLNT_TKYC.API.Controllers
         // Lấy tất cả tài liệu
         // =====================================================
         [HttpGet]
+        [Authorize(Roles = "ADMIN,RECEIVER,OFFICER,PROCESSOR,REVIEWER,APPROVER,SENIOR_APPROVER")]
         public async Task<ActionResult<IEnumerable<Document>>> GetDocuments()
         {
             var documents = await _context.Documents
@@ -47,6 +50,9 @@ namespace QLNT_TKYC.API.Controllers
         [HttpGet("{id:long}")]
         public async Task<ActionResult<Document>> GetDocument(long id)
         {
+            if (!await _accessControl.CanAccessDocumentAsync(User, id))
+                return Forbid();
+
             var document = await _context.Documents
                 .AsNoTracking()
                 .Include(d => d.Registration)
@@ -72,6 +78,9 @@ namespace QLNT_TKYC.API.Controllers
         public async Task<ActionResult<IEnumerable<Document>>>
             GetDocumentsByRegistration(long registrationId)
         {
+            if (!await _accessControl.CanAccessRegistrationAsync(User, registrationId))
+                return Forbid();
+
             var registrationExists = await _context.Registrations
                 .AnyAsync(r => r.RegistrationId == registrationId);
 
@@ -98,6 +107,7 @@ namespace QLNT_TKYC.API.Controllers
         // Tạo tài liệu
         // =====================================================
         [HttpPost]
+        [Authorize(Roles = "ADMIN,OFFICER,PROCESSOR,REVIEWER")]
         public async Task<ActionResult<Document>> CreateDocument(
             Document document)
         {
@@ -150,17 +160,24 @@ namespace QLNT_TKYC.API.Controllers
 
         // POST: api/Document/upload
         [HttpPost("upload")]
+        [Authorize(Roles = "STUDENT")]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<Document>> Upload([FromForm] UploadDocumentDto dto)
         {
+            if (!await _accessControl.CanAccessRegistrationAsync(User, dto.RegistrationId))
+                return Forbid();
+
             var doc = await _documentService.UploadAsync(dto.File, dto.RegistrationId, dto.DocumentType);
             return CreatedAtAction(nameof(GetDocument), new { id = doc.DocumentId }, doc);
         }
 
         [HttpPut("{id:long}/verify")]
-        [Authorize(Roles = "ADMIN,REVIEWER,OFFICER")]
+        [Authorize(Roles = "ADMIN,REVIEWER,OFFICER,APPROVER,SENIOR_APPROVER")]
         public async Task<ActionResult<Document>> VerifyDocument(long id, [FromBody] VerifyDocumentDto dto)
         {
+            if (!await _accessControl.CanAccessDocumentAsync(User, id))
+                return Forbid();
+
             var status = dto.DocumentStatus?.Trim().ToUpperInvariant();
             if (status is not ("VALID" or "APPROVED" or "REJECTED"))
             {
@@ -185,6 +202,7 @@ namespace QLNT_TKYC.API.Controllers
         // Cập nhật tài liệu
         // =====================================================
         [HttpPut("{id:long}")]
+        [Authorize(Roles = "ADMIN,OFFICER,PROCESSOR,REVIEWER")]
         public async Task<IActionResult> UpdateDocument(
             long id,
             Document document)
@@ -251,6 +269,7 @@ namespace QLNT_TKYC.API.Controllers
         // Xóa tài liệu
         // =====================================================
         [HttpDelete("{id:long}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> DeleteDocument(long id)
         {
             var document = await _context.Documents

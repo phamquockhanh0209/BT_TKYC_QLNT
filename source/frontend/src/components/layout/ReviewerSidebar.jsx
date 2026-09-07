@@ -16,8 +16,46 @@ import {
 } from 'lucide-react';
 import BuildingIllustration from '../common/BuildingIllustration';
 
+import reviewerService from '../../api/reviewerService';
+
 export default function ReviewerSidebar() {
   const navigate = useNavigate();
+  const [counts, setCounts] = React.useState({
+    pending: 0,
+    requests: 0,
+    additional: 0,
+    overdue: 0
+  });
+
+  React.useEffect(() => {
+    async function loadCounts() {
+      try {
+        const [queueRes, reqRes] = await Promise.allSettled([
+          reviewerService.getReviewQueue(),
+          reviewerService.getRequests()
+        ]);
+        let pending = 0;
+        let additional = 0;
+        let overdue = 0;
+        let reqCount = 0;
+
+        if (queueRes.status === 'fulfilled' && Array.isArray(queueRes.value)) {
+          pending = queueRes.value.filter(r => r.status === 'PENDING_REVIEW' || r.status === 'SUBMITTED').length;
+          additional = queueRes.value.filter(r => r.status === 'REQUEST_INFO').length;
+          overdue = queueRes.value.filter(r => (r.status === 'PENDING_REVIEW' || r.status === 'SUBMITTED') && r.slaTracking?.isBreached).length;
+        }
+
+        if (reqRes.status === 'fulfilled' && Array.isArray(reqRes.value)) {
+          reqCount = reqRes.value.filter(r => r.status === 'SUBMITTED' || r.status === 'PENDING' || r.status === 'DRAFT').length;
+        }
+
+        setCounts({ pending, requests: reqCount, additional, overdue });
+      } catch (err) {
+        console.warn("Could not load sidebar counts:", err);
+      }
+    }
+    loadCounts();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -26,11 +64,11 @@ export default function ReviewerSidebar() {
   };
 
   const navItems = [
-    { to: '/reviewer/workspace', label: 'Hồ sơ chờ xét duyệt', icon: <FileCheck size={18} />, badge: 18, badgeColor: '#163828' },
+    { to: '/reviewer/workspace', label: 'Hồ sơ chờ xét duyệt', icon: <FileCheck size={18} />, badge: counts.pending > 0 ? counts.pending : null, badgeColor: '#0f172a' },
     { to: '/reviewer/processed', label: 'Hồ sơ đã xử lý', icon: <CheckCheck size={18} /> },
-    { to: '/reviewer/requests', label: 'Yêu cầu chờ duyệt', icon: <Clock size={18} />, badge: 7, badgeColor: '#16a34a' },
-    { to: '/reviewer/additional-info', label: 'Hồ sơ cần bổ sung', icon: <FileEdit size={18} /> },
-    { to: '/reviewer/overdue', label: 'Hồ sơ quá hạn', icon: <AlertCircle size={18} /> },
+    { to: '/reviewer/requests', label: 'Yêu cầu chờ duyệt', icon: <Clock size={18} />, badge: counts.requests > 0 ? counts.requests : null, badgeColor: '#15803d' },
+    { to: '/reviewer/additional-info', label: 'Hồ sơ cần bổ sung', icon: <FileEdit size={18} />, badge: counts.additional > 0 ? counts.additional : null, badgeColor: '#0284c7' },
+    { to: '/reviewer/overdue', label: 'Hồ sơ quá hạn', icon: <AlertCircle size={18} />, badge: counts.overdue > 0 ? counts.overdue : null, badgeColor: '#dc2626' },
     { to: '/reviewer/reports', label: 'Báo cáo', icon: <FileText size={18} /> },
     { to: '/reviewer/stats', label: 'Thống kê', icon: <BarChart3 size={18} /> },
   ];

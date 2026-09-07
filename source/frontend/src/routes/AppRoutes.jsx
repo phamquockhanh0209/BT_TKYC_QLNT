@@ -111,8 +111,9 @@ export default function AppRoutes() {
         <Route path="audit" element={<AdminAuditPage />} />
       </Route>
 
-      {/* Mặc định chuyển hướng tới /overview */}
-      <Route path="*" element={<Navigate to="/overview" replace />} />
+      {/* Mặc định khi truy cập hệ thống sẽ vào trang Đăng nhập /login */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }

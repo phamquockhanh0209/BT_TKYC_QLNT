@@ -160,8 +160,7 @@ export default function AdminPermissionsPage() {
             <RefreshCw size={15} /> Làm mới
           </button>
           <button 
-            className="btn btn-sm d-inline-flex align-items-center gap-1 fs-7" 
-            style={{ backgroundColor: '#1a0b7a', color: '#fff', borderColor: '#eff713' }}
+            className="btn btn-dark d-inline-flex align-items-center gap-1 fs-7 fw-semibold" 
             onClick={handleOpenAdd}
           >
             <Plus size={16} /> Thêm quyền mới

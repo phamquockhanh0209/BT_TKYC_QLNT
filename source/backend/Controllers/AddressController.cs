@@ -23,6 +23,7 @@ namespace QLNT_TKYC.API.Controllers
         // Lấy tất cả địa chỉ
         // =====================================================
         [HttpGet]
+        [Authorize(Roles = "ADMIN,RECEIVER,OFFICER,PROCESSOR,REVIEWER,APPROVER,SENIOR_APPROVER")]
         public async Task<ActionResult<IEnumerable<Address>>> GetAddresses()
         {
             var addresses = await _context.Addresses
@@ -40,6 +41,7 @@ namespace QLNT_TKYC.API.Controllers
         // Lấy địa chỉ theo ID
         // =====================================================
         [HttpGet("{id:long}")]
+        [Authorize(Roles = "ADMIN,RECEIVER,OFFICER,PROCESSOR,REVIEWER,APPROVER,SENIOR_APPROVER")]
         public async Task<ActionResult<Address>> GetAddress(long id)
         {
             var address = await _context.Addresses
@@ -65,6 +67,7 @@ namespace QLNT_TKYC.API.Controllers
         // Lấy địa chỉ theo hồ sơ đăng ký
         // =====================================================
         [HttpGet("registration/{registrationId:long}")]
+        [Authorize(Roles = "ADMIN,RECEIVER,OFFICER,PROCESSOR,REVIEWER,APPROVER,SENIOR_APPROVER")]
         public async Task<ActionResult<IEnumerable<Address>>> GetAddressesByRegistration(
             long registrationId)
         {
@@ -95,6 +98,7 @@ namespace QLNT_TKYC.API.Controllers
         // Tạo địa chỉ
         // =====================================================
         [HttpPost]
+        [Authorize(Roles = "ADMIN,OFFICER,PROCESSOR,REVIEWER")]
         public async Task<ActionResult<Address>> CreateAddress(Address address)
         {
             // Kiểm tra Registration tồn tại
@@ -145,6 +149,7 @@ namespace QLNT_TKYC.API.Controllers
         // Cập nhật địa chỉ
         // =====================================================
         [HttpPut("{id:long}")]
+        [Authorize(Roles = "ADMIN,OFFICER,PROCESSOR,REVIEWER")]
         public async Task<IActionResult> UpdateAddress(
             long id,
             Address address)
@@ -221,6 +226,7 @@ namespace QLNT_TKYC.API.Controllers
         // Xóa địa chỉ
         // =====================================================
         [HttpDelete("{id:long}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> DeleteAddress(long id)
         {
             var address = await _context.Addresses

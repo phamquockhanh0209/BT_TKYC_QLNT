@@ -140,8 +140,7 @@ export default function AdminRolesPage() {
             <RefreshCw size={15} /> Làm mới
           </button>
           <button 
-            className="btn btn-sm d-inline-flex align-items-center gap-1 fs-7" 
-            style={{ backgroundColor: '#06087b', color: '#fff', borderColor: '#d5f718' }}
+            className="btn btn-dark d-inline-flex align-items-center gap-1 fs-7 fw-semibold" 
             onClick={handleOpenAdd}
           >
             <Plus size={16} /> Thêm vai trò mới
@@ -190,7 +189,7 @@ export default function AdminRolesPage() {
 
                   <div className="d-flex align-items-center justify-content-between border-top pt-3 mt-3">
                     <span className="text-muted fs-8">Số người dùng được gán vai trò này:</span>
-                    <span className="fw-bold fs-6" style={{ color }}>{userCount} người dùng</span>
+                    <span className="badge bg-dark text-white fs-7">{userCount} người dùng</span>
                   </div>
                 </div>
               </div>

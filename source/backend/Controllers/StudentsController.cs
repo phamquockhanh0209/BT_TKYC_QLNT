@@ -25,6 +25,7 @@ namespace QLNT_TKYC.API.Controllers
         // Lấy toàn bộ sinh viên
         // =====================================================
         [HttpGet]
+        [Authorize(Roles = "ADMIN,RECEIVER,OFFICER,PROCESSOR,REVIEWER,APPROVER,SENIOR_APPROVER")]
         public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
         {
             var students = await _context.Students
@@ -43,6 +44,9 @@ namespace QLNT_TKYC.API.Controllers
         [HttpGet("{id:long}")]
         public async Task<ActionResult<Student>> GetStudent(long id)
         {
+            if (!await CanAccessStudentProfile(id))
+                return Forbid();
+
             var student = await _context.Students
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.StudentId == id);
@@ -66,26 +70,26 @@ namespace QLNT_TKYC.API.Controllers
         [HttpGet("by-code/{studentCode}")]
         public async Task<ActionResult<Student>> GetStudentByCode(string studentCode)
         {
-            var student = await _context.Students
+            var requestedStudent = await _context.Students
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.StudentCode == studentCode);
+            if (requestedStudent == null)
+                return NotFound(new { message = "Không tìm thấy sinh viên với MSSV này.", studentCode });
+            if (!User.IsInRole("STUDENT") && !IsStaff())
+                return Forbid();
+            if (User.IsInRole("STUDENT") && User.Identity?.Name != requestedStudent.StudentCode)
+                return Forbid();
 
-            if (student == null)
-            {
-                return NotFound(new
-                {
-                    message = "Không tìm thấy sinh viên với MSSV này.",
-                    studentCode = studentCode
-                });
-            }
-
-            return Ok(student);
+            return Ok(requestedStudent);
         }
 
         [HttpPost("{id:long}/avatar")]
         [Consumes("multipart/form-data")]
         public async Task<ActionResult<Student>> UploadAvatar(long id, IFormFile file, IWebHostEnvironment environment)
         {
+            if (!await CanAccessStudentProfile(id))
+                return Forbid();
+
             if (file == null || file.Length == 0)
                 return BadRequest(new { message = "Vui lòng chọn ảnh đại diện." });
             if (file.Length > MaxAvatarSize)
@@ -119,6 +123,7 @@ namespace QLNT_TKYC.API.Controllers
         }
 
         [HttpPost("{id:long}/avatar/approve")]
+        [Authorize(Roles = "ADMIN,OFFICER,REVIEWER")]
         public async Task<ActionResult<Student>> ApproveAvatar(long id)
         {
             var student = await _context.Students.FirstOrDefaultAsync(s => s.StudentId == id);
@@ -140,6 +145,7 @@ namespace QLNT_TKYC.API.Controllers
         // Thêm sinh viên
         // =====================================================
         [HttpPost]
+        [Authorize(Roles = "ADMIN")]
         public async Task<ActionResult<Student>> CreateStudent(Student student)
         {
             // Kiểm tra mã sinh viên đã tồn tại
@@ -175,6 +181,7 @@ namespace QLNT_TKYC.API.Controllers
         // Cập nhật sinh viên
         // =====================================================
         [HttpPut("{id:long}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> UpdateStudent(
             long id,
             Student student)
@@ -241,6 +248,7 @@ namespace QLNT_TKYC.API.Controllers
         // Xóa sinh viên
         // =====================================================
         [HttpDelete("{id:long}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> DeleteStudent(long id)
         {
             var student = await _context.Students
@@ -259,6 +267,21 @@ namespace QLNT_TKYC.API.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        private bool IsStaff() =>
+            User.IsInRole("ADMIN") || User.IsInRole("RECEIVER") || User.IsInRole("OFFICER") ||
+            User.IsInRole("PROCESSOR") || User.IsInRole("REVIEWER") || User.IsInRole("APPROVER") ||
+            User.IsInRole("SENIOR_APPROVER");
+
+        private async Task<bool> CanAccessStudentProfile(long studentId)
+        {
+            if (IsStaff())
+                return true;
+
+            var studentCode = User.Identity?.Name;
+            return await _context.Students.AnyAsync(s =>
+                s.StudentId == studentId && s.StudentCode == studentCode);
         }
     }
 }

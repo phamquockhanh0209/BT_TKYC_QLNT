@@ -80,7 +80,7 @@ export default function AdminRequestsPage() {
                       <td>{sender}</td>
                       <td className="text-muted fs-8">{date}</td>
                       <td>
-                        <span className={`badge ${isApproved ? 'bg-success-subtle text-success' : (isRejected ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-warning')} fs-8`}>
+                        <span className={`badge ${isApproved ? 'bg-success text-white' : (isRejected ? 'bg-danger text-white' : 'bg-warning text-dark')} fs-8`}>
                           {r.status}
                         </span>
                       </td>

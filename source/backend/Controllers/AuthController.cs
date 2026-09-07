@@ -174,6 +174,7 @@ public class AuthController : ControllerBase
     // =====================================================
 
     [HttpPost("reset-default-passwords")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "ADMIN")]
     public async Task<IActionResult> ResetDefaultPasswords()
     {
         var defaultUsers = new[] { "admin", "officer01", "reviewer01", "student01", "student02" };

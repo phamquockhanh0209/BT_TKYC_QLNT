@@ -141,6 +141,7 @@ builder.Services.AddScoped<QLNT_TKYC.API.Services.Interfaces.INotificationServic
 builder.Services.AddScoped<QLNT_TKYC.API.Services.Interfaces.ISlaService, QLNT_TKYC.API.Services.Implementations.SlaService>();
 builder.Services.AddScoped<QLNT_TKYC.API.Services.Interfaces.IDocumentService, QLNT_TKYC.API.Services.Implementations.DocumentService>();
 builder.Services.AddScoped<QLNT_TKYC.API.Services.Interfaces.IReportService, QLNT_TKYC.API.Services.Implementations.ReportService>();
+builder.Services.AddScoped<QLNT_TKYC.API.Services.Interfaces.IAccessControlService, QLNT_TKYC.API.Services.Implementations.AccessControlService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddValidatorsFromAssemblyContaining<QLNT_TKYC.API.Validators.Registration.CreateDraftRegistrationDtoValidator>();
 

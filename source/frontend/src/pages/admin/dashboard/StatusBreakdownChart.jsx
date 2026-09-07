@@ -61,7 +61,7 @@ export default function StatusBreakdownChart() {
                 <span className="fw-bold fs-7 text-dark">
                   <code>{item.status}</code> <span className="text-muted fw-normal ms-1">({cfg.name})</span>
                 </span>
-                <span className="fw-bold fs-7" style={{ color: cfg.color }}>
+                <span className="fw-bold fs-7 text-dark">
                   {item.count} <span className="text-muted fs-8 fw-normal">({pct}%)</span>
                 </span>
               </div>

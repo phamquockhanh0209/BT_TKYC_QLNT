@@ -143,16 +143,15 @@ export default function AdminRegistrationsPage() {
                       <td className="text-muted fs-8">{sFaculty}</td>
                       <td className="text-muted fs-8">{date}</td>
                       <td>
-                        <span 
-                          className="badge"
-                          style={{ 
-                            backgroundColor: `${statusColor(r.status)}15`,
-                            color: statusColor(r.status),
-                            border: `1px solid ${statusColor(r.status)}40`
-                          }}
-                        >
-                          {r.status}
-                        </span>
+                        {r.status === 'APPROVED' && <span className="badge bg-success text-white">ĐÃ DUYỆT</span>}
+                        {r.status === 'PENDING_REVIEW' && <span className="badge bg-warning text-dark">CHỜ THẨM ĐỊNH</span>}
+                        {r.status === 'SUBMITTED' && <span className="badge bg-primary text-white">CHỜ TIẾP NHẬN</span>}
+                        {r.status === 'REQUEST_INFO' && <span className="badge bg-info text-white">CẦN BỔ SUNG</span>}
+                        {r.status === 'REJECTED' && <span className="badge bg-danger text-white">TỪ CHỐI</span>}
+                        {r.status === 'DRAFT' && <span className="badge bg-secondary text-white">BẢN NHÁP</span>}
+                        {!['APPROVED', 'PENDING_REVIEW', 'SUBMITTED', 'REQUEST_INFO', 'REJECTED', 'DRAFT'].includes(r.status) && (
+                          <span className="badge bg-secondary text-white">{r.status}</span>
+                        )}
                       </td>
                       <td className="text-end">
                         <button className="btn btn-sm btn-outline-primary" onClick={() => setSelectedReg(r)}>
@@ -201,8 +200,9 @@ export default function AdminRegistrationsPage() {
                   <div className="col-12">
                     <h6 className="fw-bold text-muted fs-8 text-uppercase">Trạng thái xét duyệt</h6>
                     <div className="p-3 border rounded-2 d-flex justify-content-between align-items-center">
-                      <div>
-                        Trạng thái hiện tại: <strong style={{ color: statusColor(selectedReg.status) }}>{selectedReg.status}</strong>
+                      <div className="d-flex align-items-center gap-2">
+                        <span>Trạng thái hiện tại:</span>
+                        <span className="badge bg-dark text-white fs-7">{selectedReg.status}</span>
                       </div>
                       <div className="text-muted fs-8">
                         Ngày tạo: {selectedReg.createdAt ? new Date(selectedReg.createdAt).toLocaleString('vi-VN') : '—'}

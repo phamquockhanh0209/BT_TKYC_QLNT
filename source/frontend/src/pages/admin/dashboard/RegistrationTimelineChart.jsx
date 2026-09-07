@@ -93,7 +93,7 @@ export default function RegistrationTimelineChart() {
 
       <div className="mt-2 text-muted fs-8 d-flex align-items-center justify-content-between">
         <span>Ghi nhận thời gian nộp hồ sơ thực tế trong CSDL</span>
-        <span className="text-success fw-bold d-inline-flex align-items-center gap-1">
+        <span className="badge bg-success text-white d-inline-flex align-items-center gap-1 fs-8">
           <TrendingUp size={14} /> {totalRecent > 0 ? `${totalRecent} hồ sơ gần đây` : '+34.8% lượt nộp mới'}
         </span>
       </div>

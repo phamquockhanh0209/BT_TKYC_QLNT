@@ -20,12 +20,14 @@ namespace QLNT_TKYC.API.Services.Implementations
         private readonly AppDbContext _dbContext;
         private readonly IWebHostEnvironment _env;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IAccessControlService _accessControl;
 
-        public DocumentService(AppDbContext dbContext, IWebHostEnvironment env, IHttpContextAccessor httpContextAccessor)
+        public DocumentService(AppDbContext dbContext, IWebHostEnvironment env, IHttpContextAccessor httpContextAccessor, IAccessControlService accessControl)
         {
             _dbContext = dbContext;
             _env = env;
             _httpContextAccessor = httpContextAccessor;
+            _accessControl = accessControl;
         }
 
         public async Task<Document> UploadAsync(IFormFile file, long registrationId, string? documentType = null)
@@ -41,6 +43,8 @@ namespace QLNT_TKYC.API.Services.Implementations
                 .FirstOrDefaultAsync(r => r.RegistrationId == registrationId);
             if (registration == null)
                 throw new InvalidOperationException($"Registration with ID {registrationId} not found.");
+            if (!await _accessControl.CanAccessRegistrationAsync(_httpContextAccessor.HttpContext!.User, registrationId))
+                throw new UnauthorizedAccessException("Bạn không có quyền tải tài liệu cho hồ sơ này.");
 
             // Determine storage path: uploads/documents/yyyy/MM/
             var now = DateTime.UtcNow;

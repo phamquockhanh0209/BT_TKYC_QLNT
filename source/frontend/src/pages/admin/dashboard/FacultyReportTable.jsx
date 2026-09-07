@@ -68,7 +68,7 @@ export default function FacultyReportTable() {
                 </td>
                 <td className="py-2 text-center text-muted">{row.totalStudents}</td>
                 <td className="py-2 text-center fw-bold text-dark">{row.offCampusStudents}</td>
-                <td className="py-2 text-end text-success fw-bold">{row.percentage}%</td>
+                <td className="py-2 text-end"><span className="badge bg-success text-white">{row.percentage}%</span></td>
               </tr>
             ))}
           </tbody>

@@ -1,4 +1,4 @@
-﻿import axiosClient from './axiosClient';
+import axiosClient from './axiosClient';
 
 export const reviewerService = {
   /**
@@ -55,6 +55,50 @@ export const reviewerService = {
    */
   async getDocumentVersions(documentId) {
     return await axiosClient.get(`/DocumentVersion/document/${documentId}`);
+  },
+
+  /**
+   * Lấy danh sách hồ sơ đã xử lý (APPROVED hoặc REJECTED)
+   */
+  async getProcessedRegistrations(params = {}) {
+    const res = await axiosClient.get('/Registration');
+    if (Array.isArray(res)) {
+      return res.filter(r => r.status === 'APPROVED' || r.status === 'REJECTED');
+    }
+    return [];
+  },
+
+  /**
+   * Lấy danh sách yêu cầu kiến nghị của sinh viên
+   */
+  async getRequests(params = {}) {
+    return await axiosClient.get('/Request');
+  },
+
+  /**
+   * Cập nhật trạng thái yêu cầu (APPROVED, REJECTED)
+   */
+  async updateRequest(id, data) {
+    return await axiosClient.put(`/Request/${id}`, data);
+  },
+
+  /**
+   * Lấy dữ liệu báo cáo thống kê cho Reviewer
+   */
+  async getOverview() {
+    return await axiosClient.get('/Report/overview');
+  },
+
+  async getSlaPerformance() {
+    return await axiosClient.get('/Report/sla-performance');
+  },
+
+  async getStatsByFaculty() {
+    return await axiosClient.get('/Report/by-faculty');
+  },
+
+  async getStatsByStatus() {
+    return await axiosClient.get('/Report/by-status');
   }
 };
 
