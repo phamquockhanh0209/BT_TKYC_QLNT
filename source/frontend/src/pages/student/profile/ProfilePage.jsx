@@ -74,7 +74,7 @@ export default function ProfilePage() {
         <div className="col-lg-8 col-12">
           <div className="app-card-clean mb-4">
             {error && <div className="alert alert-danger">{error}</div>}
-            <h5 className="fw-bold mb-3">Thông Tin Học Vụ (Đồng bộ từ Database)</h5>
+            <h5 className="fw-bold mb-3">Thông Tin Học Vụ</h5>
             <div className="row g-3">
               <div className="col-md-6">
                 <div className="text-muted fs-7">Họ và tên</div>

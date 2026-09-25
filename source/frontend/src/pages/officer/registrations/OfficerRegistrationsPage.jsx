@@ -59,8 +59,52 @@ export default function OfficerRegistrationsPage() {
         note: note || 'Cán bộ Quản lý phê duyệt chính thức.',
         approverId: user?.userId
       });
+      alert(`Đã phê duyệt chính thức hồ sơ ${reg.registrationCode || `#${reg.registrationId}`} thành công!`);
       setShowModal(false);
       await loadData();
+    } catch (err) {
+      console.error('Lỗi phê duyệt:', err);
+      alert(err?.response?.data?.message || 'Không thể phê duyệt hồ sơ.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleRequestInfo = async (reg, note) => {
+    try {
+      setSubmitting(true);
+      const user = authService.getCurrentUser();
+      await officerService.processRegistration(reg.registrationId, {
+        action: 'REQUEST_INFO',
+        note: note,
+        approverId: user?.userId
+      });
+      alert(`Đã gửi yêu cầu bổ sung giấy tờ cho hồ sơ ${reg.registrationCode || `#${reg.registrationId}`}.`);
+      setShowModal(false);
+      await loadData();
+    } catch (err) {
+      console.error('Lỗi yêu cầu bổ sung:', err);
+      alert(err?.response?.data?.message || 'Không thể gửi yêu cầu bổ sung.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleReject = async (reg, note) => {
+    try {
+      setSubmitting(true);
+      const user = authService.getCurrentUser();
+      await officerService.processRegistration(reg.registrationId, {
+        action: 'REJECT',
+        note: note,
+        approverId: user?.userId
+      });
+      alert(`Đã từ chối hồ sơ ${reg.registrationCode || `#${reg.registrationId}`}.`);
+      setShowModal(false);
+      await loadData();
+    } catch (err) {
+      console.error('Lỗi từ chối hồ sơ:', err);
+      alert(err?.response?.data?.message || 'Không thể từ chối hồ sơ.');
     } finally {
       setSubmitting(false);
     }
@@ -249,8 +293,8 @@ export default function OfficerRegistrationsPage() {
         onHide={() => setShowModal(false)}
         registration={selectedReg}
         onApprove={handleApprove}
-        onRequestInfo={() => setShowModal(false)}
-        onReject={() => setShowModal(false)}
+        onRequestInfo={handleRequestInfo}
+        onReject={handleReject}
         submitting={submitting}
       />
     </div>

@@ -1,0 +1,758 @@
+CHƯƠNG 1: TỔNG QUAN ĐỀ TÀI
+Lý do chọn đề tài
+Bối cảnh của bài toán
+Trong môi trường đại học, sinh viên có thể sinh sống tại nhiều loại hình cư trú khác nhau. Bên cạnh sinh viên ở cùng gia đình hoặc tại ký túc xá, một bộ phận sinh viên thuê nhà trọ, thuê phòng trong các khu nhà cho thuê, ở cùng người thân hoặc chuyển đến một địa chỉ khác trong thời gian học tập. Khi sinh viên cư trú ngoài phạm vi quản lý trực tiếp của nhà trường, thông tin về nơi ở cần được khai báo và quản lý để phục vụ công tác quản lý sinh viên cũng như các nghiệp vụ liên quan đến ngoại trú.
+Nghiệp vụ ngoại trú về bản chất không chỉ là việc lưu một địa chỉ. Một hồ sơ ngoại trú có thể trải qua nhiều giai đoạn từ lúc sinh viên tạo hồ sơ, khai báo nơi ở, cung cấp thông tin chủ trọ, nộp giấy tờ, gửi hồ sơ, được cán bộ tiếp nhận, được yêu cầu bổ sung, được người có thẩm quyền xét duyệt và chuyển sang trạng thái hoạt động. Trong quá trình đó, sinh viên có thể phát sinh các yêu cầu như gia hạn, thay đổi nơi ở hoặc kết thúc ngoại trú. Vì vậy, hệ thống cần quản lý cả dữ liệu hiện tại và lịch sử thay đổi.
+Nếu số lượng sinh viên và hồ sơ tăng lên, việc quản lý bằng giấy tờ hoặc các tệp bảng tính riêng lẻ sẽ làm tăng khối lượng công việc cho cán bộ. Việc tìm kiếm một hồ sơ cụ thể, xác định hồ sơ đang ở bước nào, kiểm tra giấy tờ còn thiếu, theo dõi thời hạn xử lý hoặc thống kê số lượng hồ sơ theo từng trạng thái sẽ trở nên khó khăn hơn khi dữ liệu phân tán.
+Những hạn chế của phương pháp quản lý thủ công
+Phương pháp quản lý thủ công thường phụ thuộc nhiều vào thao tác của cán bộ và sinh viên. Các thông tin có thể được nhập hoặc lưu ở nhiều nơi khác nhau, dẫn đến khó khăn trong việc đồng bộ và kiểm soát dữ liệu. Khi sinh viên thay đổi địa chỉ, nếu chỉ cập nhật trực tiếp địa chỉ cũ thì lịch sử cư trú có thể bị mất. Tương tự, nếu một giấy tờ được thay thế nhiều lần nhưng chỉ lưu bản cuối cùng thì cán bộ khó xác định quá trình thay đổi của hồ sơ.
+Một vấn đề khác là theo dõi trạng thái xử lý. Hồ sơ không phải lúc nào cũng được xử lý ngay sau khi sinh viên nộp. Hồ sơ có thể đang chờ tiếp nhận, đang được kiểm tra, cần bổ sung thông tin, chờ xét duyệt, đã được duyệt, bị từ chối hoặc đã kết thúc hiệu lực. Nếu không có một cơ chế trạng thái thống nhất, việc xác định tình trạng hiện tại của hồ sơ có thể thiếu chính xác.
+Ngoài ra, thời gian xử lý cũng cần được kiểm soát. Một số hồ sơ có thể vượt quá thời hạn quy định. Nếu cán bộ phải tự theo dõi thời hạn bằng bảng tính hoặc ghi chú cá nhân, khả năng bỏ sót hồ sơ quá hạn là có thể xảy ra. Do đó, việc đưa SLA, thời hạn xử lý và cảnh báo quá hạn vào hệ thống giúp quá trình quản lý có cơ sở dữ liệu rõ ràng hơn.
+Ý nghĩa của đề tài
+Về mặt nghiệp vụ, đề tài góp phần mô hình hóa một quy trình quản lý ngoại trú thành các bước có trạng thái, tác nhân, dữ liệu đầu vào và kết quả đầu ra rõ ràng. Việc mô hình hóa này giúp hạn chế tình trạng mỗi người thực hiện quy trình theo một cách khác nhau và tạo cơ sở cho việc kiểm tra tính nhất quán của dữ liệu.
+Về mặt kỹ thuật, đề tài là cơ hội áp dụng kiến thức về phân tích thiết kế hệ thống, cơ sở dữ liệu quan hệ, lập trình Web API, xác thực và phân quyền, thiết kế giao diện, quản lý trạng thái, xử lý tệp, báo cáo và kiểm thử. Đây là các thành phần thường xuất hiện trong những hệ thống phần mềm quản lý nghiệp vụ thực tế.
+Về mặt học tập, đề tài giúp kết nối các giai đoạn từ khảo sát bài toán đến sản phẩm phần mềm. Thay vì chỉ xây dựng các chức năng rời rạc, nhóm thực hiện có thể chứng minh mối liên hệ giữa yêu cầu nghiệp vụ, mô hình phân tích, thiết kế cơ sở dữ liệu, API, giao diện và kết quả kiểm thử.
+Mục tiêu của đề tài
+Mục tiêu tổng quát
+Mục tiêu tổng quát của đề tài là phân tích, thiết kế và xây dựng một hệ thống Web hỗ trợ quản lý toàn bộ vòng đời hồ sơ ngoại trú của sinh viên, từ lúc khai báo và nộp hồ sơ, tiếp nhận và kiểm tra, yêu cầu bổ sung khi cần thiết, xét duyệt, quản lý nơi ở, theo dõi các yêu cầu phát sinh cho đến khi hồ sơ hết hạn hoặc kết thúc ngoại trú.
+Hệ thống hướng đến việc cung cấp dữ liệu tập trung, quy trình xử lý rõ ràng, phân quyền theo vai trò và khả năng truy vết lịch sử. Các thông tin báo cáo và thống kê được xây dựng từ dữ liệu nghiệp vụ nhằm hỗ trợ cán bộ theo dõi tình hình xử lý hồ sơ.
+Mục tiêu cụ thể
+Xây dựng mô hình nghiệp vụ quản lý ngoại trú có cấu trúc, xác định rõ tác nhân, quy trình, trạng thái và quy tắc nghiệp vụ.
+Cho phép sinh viên đăng nhập và thực hiện các thao tác liên quan đến hồ sơ ngoại trú của chính mình.
+Cho phép sinh viên tạo và nộp hồ sơ ngoại trú, khai báo thông tin nơi ở và thông tin chủ trọ.
+Cho phép quản lý giấy tờ đi kèm hồ sơ và duy trì lịch sử phiên bản của giấy tờ khi có thay đổi.
+Cho phép cán bộ tiếp nhận, kiểm tra, xử lý hồ sơ và tạo yêu cầu bổ sung khi thông tin hoặc giấy tờ chưa đầy đủ.
+Cho phép người xét duyệt xem xét hồ sơ theo một không gian làm việc riêng và thực hiện các quyết định theo quyền hạn được cấp.
+Cho phép sinh viên gửi các yêu cầu nghiệp vụ như gia hạn, thay đổi địa chỉ hoặc kết thúc ngoại trú.
+Bảo đảm việc thay đổi nơi ở không làm mất lịch sử địa chỉ trước đó; địa chỉ cũ được lưu để phục vụ tra cứu lịch sử.
+Theo dõi thời hạn xử lý hồ sơ và yêu cầu thông qua cơ chế SLA, đồng thời xác định các trường hợp quá hạn.
+Cung cấp thông báo cho người dùng khi phát sinh sự kiện nghiệp vụ quan trọng.
+Cung cấp các báo cáo và thống kê phục vụ theo dõi số lượng hồ sơ, trạng thái, khoa/lớp, khu vực cư trú và hiệu quả xử lý.
+Áp dụng xác thực và phân quyền dựa trên vai trò để giới hạn chức năng và dữ liệu mà từng nhóm người dùng được phép thao tác.
+Ghi nhận lịch sử xử lý và nhật ký thao tác đối với những hoạt động cần truy vết.
+Thiết kế hệ thống theo hướng có thể mở rộng thêm chức năng hoặc tích hợp với các hệ thống khác trong tương lai.
+Đối tượng và phạm vi nghiên cứu
+Sự cần thiết của hệ thống quản lý tập trung
+Từ những vấn đề trên, đề tài hướng đến việc xây dựng một hệ thống quản lý ngoại trú tập trung, trong đó dữ liệu và quy trình xử lý được tổ chức thống nhất. Sinh viên có thể thực hiện các thao tác liên quan đến hồ sơ của mình thông qua giao diện trực tuyến; cán bộ có thể tiếp nhận, kiểm tra và xử lý hồ sơ; người xét duyệt có không gian riêng để rà soát và đưa ra quyết định; quản trị viên quản lý người dùng, vai trò, quyền hạn và các cấu hình cần thiết.
+Hệ thống cũng cần bảo đảm rằng các thao tác quan trọng đều có thể được truy vết. Lịch sử yêu cầu, lịch sử trạng thái, phiên bản giấy tờ và nhật ký thao tác giúp cung cấp thông tin phục vụ kiểm tra khi cần thiết. Đây là một đặc điểm quan trọng đối với một hệ thống quản lý nghiệp vụ thay vì chỉ đơn thuần là một hệ thống lưu trữ dữ liệu.
+Đối tượng nghiên cứu
+Đối tượng nghiên cứu của đề tài là quy trình và dữ liệu phục vụ quản lý ngoại trú của sinh viên. Trọng tâm là mối quan hệ giữa sinh viên, hồ sơ ngoại trú, địa chỉ cư trú, chủ trọ, giấy tờ, yêu cầu xử lý, phê duyệt, thông báo, SLA và lịch sử thao tác.
+Đề tài đồng thời nghiên cứu cách tổ chức các vai trò người dùng và cách kiểm soát quyền truy cập vào các chức năng. Dữ liệu sinh viên được xem xét trong mối quan hệ với SIS, trong đó SIS là nguồn dữ liệu sinh viên bên ngoài có tính chất nguồn chính, còn hệ thống ngoại trú lưu phần dữ liệu cần thiết để phục vụ nghiệp vụ.
+Phạm vi nghiệp vụ
+Phạm vi nghiệp vụ chính của hệ thống bao gồm đăng nhập và xác thực, quản lý hồ sơ ngoại trú, khai báo nơi ở, quản lý thông tin chủ trọ, quản lý giấy tờ, tiếp nhận và xử lý yêu cầu, xét duyệt, thông báo, theo dõi SLA, lịch sử xử lý, báo cáo và quản trị người dùng.
+Một hồ sơ ngoại trú có thể trải qua nhiều trạng thái trong vòng đời. Hệ thống phải phân biệt rõ trạng thái của hồ sơ với các thông tin khác như việc nộp muộn hoặc thời hạn xử lý. Việc này giúp trạng thái phản ánh đúng vòng đời nghiệp vụ thay vì sử dụng một trường trạng thái cho quá nhiều mục đích.
+Phạm vi dữ liệu
+Dữ liệu của hệ thống được tổ chức thành các nhóm chính gồm dữ liệu sinh viên, người dùng và phân quyền, hồ sơ ngoại trú, địa chỉ, chủ trọ, giấy tờ và phiên bản giấy tờ, yêu cầu và lịch sử yêu cầu, phê duyệt, thông báo, SLA và quá hạn, nhật ký thao tác và cấu hình.
+Trong thiết kế hiện tại, cơ sở dữ liệu gồm 20 bảng chính, được tổ chức thành các nhóm nghiệp vụ nhằm hỗ trợ quản lý toàn bộ vòng đời xử lý. Việc tách các nhóm dữ liệu giúp hạn chế trùng lặp và cho phép lưu lịch sử thay đổi thay vì ghi đè dữ liệu cũ.
+Phạm vi người dùng
+Sinh viên: tạo, xem và theo dõi hồ sơ ngoại trú của bản thân; khai báo nơi ở; quản lý giấy tờ; tạo và theo dõi yêu cầu.
+Cán bộ: tiếp nhận và xử lý hồ sơ; kiểm tra thông tin và giấy tờ; yêu cầu bổ sung; theo dõi SLA; tra cứu và lập báo cáo theo quyền hạn.
+Người xét duyệt: rà soát các hồ sơ được chuyển đến bước xét duyệt và đưa ra quyết định theo nghiệp vụ.
+Quản trị viên: quản lý tài khoản, vai trò, quyền, cấu hình và các chức năng quản trị hệ thống.
+Những nội dung nằm ngoài phạm vi
+Để bảo đảm đề tài tập trung vào bài toán chính, hệ thống không thực hiện quản lý ký túc xá, phân bổ phòng ký túc xá hoặc quản lý quy trình sinh viên vào và ra khỏi ký túc xá. Trường hợp sinh viên chuyển vào ký túc xá có thể được xem là một lý do để kết thúc hồ sơ ngoại trú, nhưng nghiệp vụ quản lý ký túc xá không thuộc phạm vi của hệ thống.
+Hệ thống cũng không thay thế hệ thống quản lý sinh viên tổng thể của nhà trường. Thông tin sinh viên có nguồn từ SIS và được sử dụng cho mục đích nghiệp vụ ngoại trú. Các nghiệp vụ như quản lý điểm, học phí, chương trình đào tạo hoặc hồ sơ học vụ không thuộc phạm vi đề tài.
+Chủ trọ không được thiết kế thành một nhóm người dùng đăng nhập riêng. Thông tin chủ trọ được sinh viên khai báo và các giấy tờ có xác nhận của chủ trọ được cung cấp để cán bộ kiểm tra.
+Đối tượng sử dụng hệ thống
+Sinh viên
+Sinh viên là đối tượng trực tiếp thực hiện việc khai báo và theo dõi tình trạng ngoại trú. Sau khi đăng nhập, sinh viên có thể xem thông tin cá nhân được sử dụng trong nghiệp vụ, tạo hồ sơ, khai báo nơi ở, cung cấp thông tin chủ trọ, nộp giấy tờ và theo dõi tiến trình xử lý.
+Ngoài hồ sơ ban đầu, sinh viên có thể phát sinh các yêu cầu trong quá trình cư trú như gia hạn, chuyển nơi ở hoặc kết thúc ngoại trú. Sinh viên cũng nhận được các thông báo liên quan đến hồ sơ và yêu cầu của mình.
+Cán bộ tiếp nhận và xử lý
+Cán bộ là nhóm người dùng thực hiện công việc nghiệp vụ ở phía nhà trường. Cán bộ có thể xem danh sách hồ sơ cần xử lý, tìm kiếm theo các điều kiện, kiểm tra thông tin sinh viên, địa chỉ, chủ trọ và giấy tờ. Khi hồ sơ chưa đầy đủ, cán bộ có thể yêu cầu sinh viên bổ sung.
+Giao diện của cán bộ được định hướng theo quy trình xử lý, tập trung vào danh sách hồ sơ, bộ lọc, trạng thái, thời hạn SLA và thao tác xử lý nhanh. Cách thiết kế này khác với giao diện sinh viên, vốn tập trung nhiều hơn vào trải nghiệm cá nhân và tiến trình hồ sơ.
+Người xét duyệt
+Người xét duyệt tiếp nhận những hồ sơ đã qua bước xử lý cần thiết và cần được xem xét để đưa ra quyết định. Giao diện của người xét duyệt được thiết kế theo dạng không gian rà soát hồ sơ, trong đó có danh sách hồ sơ chờ xét duyệt, thông tin chi tiết, giấy tờ, lịch sử xử lý và các hành động như phê duyệt, yêu cầu bổ sung hoặc từ chối theo quyền được cấp.
+Quản trị viên
+Quản trị viên chịu trách nhiệm quản lý các thành phần mang tính quản trị của hệ thống như tài khoản, vai trò, quyền hạn, cấu hình, dữ liệu hỗ trợ và nhật ký. Các chức năng quản trị cần được bảo vệ bằng cơ chế phân quyền nhằm tránh việc người dùng thông thường có thể thực hiện các thao tác nhạy cảm.
+Hệ thống SIS
+SIS là hệ thống bên ngoài cung cấp thông tin sinh viên. Trong kiến trúc nghiệp vụ, SIS được xem là nguồn dữ liệu chính đối với thông tin sinh viên. Hệ thống quản lý ngoại trú không thay thế SIS mà sử dụng dữ liệu cần thiết từ SIS và có thể duy trì Student Cache để phục vụ truy vấn nghiệp vụ và đồng bộ.
+Tác vụ lập lịch của hệ thống
+Tác vụ lập lịch là thành phần tự động thực hiện những công việc không cần người dùng tương tác trực tiếp, chẳng hạn kiểm tra thời hạn, cập nhật các hồ sơ đã đến ngày hết hạn theo quy tắc nghiệp vụ hoặc hỗ trợ theo dõi SLA. Việc tách tác vụ lập lịch thành một tác nhân giúp mô hình hóa rõ phần việc do hệ thống tự động thực hiện.
+Phương pháp thực hiện
+Phương pháp khảo sát và phân tích nghiệp vụ
+Đề tài bắt đầu từ việc xác định bài toán và các bên tham gia, sau đó phân rã quy trình thành các nghiệp vụ cụ thể. Mỗi nghiệp vụ được xem xét theo tác nhân thực hiện, điều kiện bắt đầu, dữ liệu đầu vào, các bước xử lý, điều kiện ngoại lệ và kết quả đầu ra.
+Các quy tắc nghiệp vụ được ghi nhận riêng để tránh việc quy tắc quan trọng bị ẩn trong mô tả Use Case. Ví dụ, một sinh viên chỉ được có tối đa một hồ sơ đang ACTIVE tại một thời điểm; một hồ sơ có thể có nhiều địa chỉ theo lịch sử nhưng chỉ có một địa chỉ hiện tại; một hồ sơ có thể có nhiều yêu cầu nhưng không cho phép tồn tại nhiều yêu cầu đang mở đồng thời theo quy tắc của hệ thống.
+Phương pháp phân tích và thiết kế
+Sau khi xác định yêu cầu, hệ thống được mô hình hóa bằng các biểu đồ và tài liệu phân tích thiết kế. Use Case được dùng để mô tả chức năng theo góc nhìn người dùng; Activity Diagram mô tả luồng công việc; Sequence Diagram mô tả tương tác giữa các thành phần; State Diagram mô tả vòng đời của các đối tượng có trạng thái; DFD mô tả luồng dữ liệu; ERD mô tả cấu trúc và quan hệ dữ liệu.
+Việc phân tích được thực hiện theo hướng từ nghiệp vụ đến dữ liệu và từ dữ liệu đến chức năng. Mỗi chức năng quan trọng cần có cơ sở từ yêu cầu nghiệp vụ và phải có dữ liệu tương ứng trong thiết kế cơ sở dữ liệu hoặc được liên kết với dữ liệu từ hệ thống bên ngoài.
+Phương pháp phát triển và kiểm thử
+Quá trình phát triển được chia thành các giai đoạn: phân tích yêu cầu, thiết kế, xây dựng cơ sở dữ liệu, phát triển Backend/API, phát triển Frontend, tích hợp, kiểm thử và hoàn thiện. Việc chia thành từng giai đoạn giúp dễ xác định lỗi và đối chiếu kết quả triển khai với yêu cầu ban đầu.
+Kiểm thử được thực hiện ở nhiều mức độ, bao gồm kiểm thử dữ liệu và ràng buộc cơ sở dữ liệu, kiểm thử API, kiểm thử xác thực và phân quyền, kiểm thử các luồng nghiệp vụ chính và kiểm thử giao diện. Các trường hợp ngoại lệ như dữ liệu không hợp lệ, hồ sơ thiếu giấy tờ, yêu cầu quá hạn hoặc người dùng không đủ quyền cũng cần được xem xét.
+Công nghệ và công cụ sử dụng
+Backend – ASP.NET Core Web API
+Entity Framework Core
+Microsoft SQL Server
+Frontend
+Swagger / OpenAPI
+Git và GitHub
+Visual Studio và Visual Studio Code
+CHƯƠNG 2: KHẢO SÁT VÀ PHÂN TÍCH NGHIỆP VỤ
+Giới thiệu bài toán
+Khái niệm quản lý ngoại trú sinh viên
+Quản lý ngoại trú sinh viên là quá trình tiếp nhận, kiểm tra, xét duyệt, theo dõi và lưu trữ thông tin liên quan đến nơi ở của sinh viên bên ngoài phạm vi ký túc xá hoặc cơ sở lưu trú do nhà trường trực tiếp quản lý. Mỗi hồ sơ ngoại trú phản ánh một giai đoạn cư trú cụ thể của một sinh viên tại một địa chỉ nhất định.
+Trong hệ thống đề xuất, hồ sơ ngoại trú được quản lý theo vòng đời. Hồ sơ có thể bắt đầu từ trạng thái DRAFT, được sinh viên gửi lên, chuyển sang kiểm tra và xét duyệt, sau đó trở thành hồ sơ đang có hiệu lực. Khi sinh viên thay đổi nơi ở, kết thúc việc ngoại trú hoặc hồ sơ hết thời hạn, hệ thống ghi nhận trạng thái mới nhưng vẫn bảo toàn lịch sử.
+Một điểm quan trọng là phân biệt Hồ sơ ngoại trú (Registration) với Yêu cầu xử lý (Request). Registration đại diện cho một giai đoạn cư trú; Request mô tả một yêu cầu phát sinh như thay đổi địa chỉ, gia hạn hoặc kết thúc ngoại trú.
+Thành phần thông tin của một hồ sơ ngoại trú
+Một hồ sơ ngoại trú không chỉ bao gồm địa chỉ cư trú mà còn liên quan đến nhiều nhóm thông tin. Nhóm thông tin sinh viên cung cấp định danh của người đăng ký. Registration xác định mã hồ sơ, trạng thái và thời gian hiệu lực. Address lưu địa chỉ cư trú và lịch sử thay đổi.
+Thông tin chủ nhà trọ được lưu riêng. Chủ nhà không phải là người dùng đăng nhập; sinh viên khai báo thông tin chủ nhà và cung cấp giấy tờ hoặc xác nhận có chữ ký của chủ nhà theo quy trình.
+Hồ sơ còn liên quan đến Document và Document Version để quản lý giấy tờ; Approval để lưu quyết định xét duyệt; Request và Request History để theo dõi yêu cầu; Notification để thông báo; SLA Tracking và Escalation để kiểm soát thời hạn; Audit Log để truy vết thao tác.
+Các bên tham gia trong quy trình
+Các tác nhân chính gồm Sinh viên, Cán bộ xử lý, Người xét duyệt và Quản trị viên. Ngoài ra còn có SIS là hệ thống bên ngoài cung cấp dữ liệu sinh viên và System Scheduler thực hiện các tác vụ tự động theo lịch.
+Sinh viên khởi tạo và theo dõi hồ sơ. Cán bộ tiếp nhận, kiểm tra và xử lý nghiệp vụ. Người xét duyệt thực hiện các quyết định cần thẩm quyền. Quản trị viên quản lý tài khoản, vai trò, quyền, cấu hình và nhật ký. SIS cung cấp dữ liệu tham chiếu, còn Scheduler hỗ trợ các nghiệp vụ tự động như kiểm tra thời hạn.
+Khảo sát quy trình
+Quy trình sinh viên khai báo nơi ở
+Sinh viên cung cấp thông tin nơi ở ngoài phạm vi ký túc xá, gồm địa chỉ, thời gian cư trú và thông tin chủ nhà. Sinh viên chuẩn bị các giấy tờ cần thiết, trong đó có thể bao gồm xác nhận của chủ nhà, rồi gửi cho bộ phận phụ trách kiểm tra.
+Trong phương án hệ thống hóa, sinh viên có thể lưu hồ sơ ở DRAFT trong khi hoàn thiện. Chỉ khi đầy đủ thông tin và thực hiện gửi thì hồ sơ mới chuyển sang SUBMITTED.
+Quy trình cán bộ tiếp nhận
+Sau khi hồ sơ được gửi, cán bộ kiểm tra các thông tin cơ bản, sự đầy đủ của giấy tờ và tính phù hợp của dữ liệu. Cán bộ có thể tiếp tục xử lý hoặc yêu cầu sinh viên bổ sung.
+Việc tiếp nhận cần được ghi nhận bằng lịch sử xử lý. Hệ thống không chỉ lưu trạng thái hiện tại mà còn phải cho phép xác định hồ sơ đã đi qua bước nào, ai thực hiện và thời điểm thực hiện.
+Kiểm tra giấy tờ
+Giấy tờ là thành phần quan trọng trong quá trình xác minh. Một tài liệu có thể được cập nhật nhiều lần, vì vậy hệ thống cần quản lý phiên bản thay vì xóa bản cũ và ghi đè bằng bản mới.
+Mỗi phiên bản cần có tên tệp, người tải lên, thời điểm tải lên, số phiên bản và trạng thái hiện hành.
+Quy trình xét duyệt
+Sau khi hồ sơ đáp ứng điều kiện kiểm tra, hồ sơ được chuyển đến người có thẩm quyền xét duyệt. Người xét duyệt xem thông tin sinh viên, địa chỉ, chủ nhà, giấy tờ và lịch sử xử lý trước khi đưa ra quyết định.
+Kết quả xét duyệt phải được lưu thành bản ghi Approval, gồm người quyết định, loại quyết định, kết quả, thời điểm và lý do nếu có.
+Quy trình thay đổi nơi ở
+Khi sinh viên chuyển sang địa chỉ mới, hệ thống không thay thế trực tiếp địa chỉ cũ. Một Request loại CHANGE_ADDRESS được tạo để mô tả thay đổi. Địa chỉ mới chỉ trở thành địa chỉ hiện tại sau khi yêu cầu được xử lý theo quy định.
+Địa chỉ cũ được giữ lại cùng thời gian bắt đầu và kết thúc để có thể tra cứu lịch sử nơi ở.
+Quy trình kết thúc ngoại trú
+Khi sinh viên không còn cư trú tại địa chỉ đã đăng ký, sinh viên có thể gửi yêu cầu TERMINATION. Sau khi được xử lý, hồ sơ chuyển sang TERMINATED nhưng dữ liệu vẫn được giữ lại.
+Nếu hồ sơ hết thời hạn mà không được gia hạn, Scheduler có thể kiểm tra và chuyển hồ sơ sang EXPIRED. EXPIRED và TERMINATED cần được phân biệt vì một trạng thái thể hiện hết hạn theo thời gian, trạng thái còn lại thể hiện kết thúc cư trú theo nghiệp vụ.
+Những hạn chế cần giải quyết
+Quy trình thủ công hoặc phân tán gây khó khăn trong tìm kiếm hồ sơ, xác định bước xử lý, kiểm tra giấy tờ và theo dõi lịch sử. Khi số lượng sinh viên tăng, việc tổng hợp theo khoa, lớp, địa bàn hoặc trạng thái cũng tốn thời gian.
+Nếu không có quản lý phiên bản tài liệu, lịch sử yêu cầu, SLA và nhật ký thao tác thì khó truy vết khi phát sinh sai lệch. Hệ thống mới cần tập trung dữ liệu, phân quyền rõ ràng và lưu vết đầy đủ.
+Quy trình nghiệp vụ
+Đăng nhập và xác thực
+Người dùng đăng nhập bằng tài khoản được cấp. Hệ thống kiểm tra thông tin xác thực, trạng thái tài khoản và vai trò. Sau khi xác thực thành công, hệ thống cấp JWT và sử dụng thông tin vai trò để giới hạn chức năng được phép truy cập.
+Tạo hồ sơ ngoại trú
+Sinh viên tạo Registration mới và nhập thông tin cần thiết. Trong giai đoạn chuẩn bị, hồ sơ có thể ở DRAFT để chỉnh sửa. Khi hoàn thiện, sinh viên gửi hồ sơ và hệ thống chuyển sang SUBMITTED.
+Hệ thống cần kiểm tra điều kiện nghiệp vụ, đặc biệt là sinh viên không có quá một hồ sơ ACTIVE tại cùng thời điểm.
+Khai báo địa chỉ và chủ nhà
+Sinh viên nhập địa chỉ cư trú và thông tin chủ nhà. Địa chỉ và chủ nhà được quản lý thành các đối tượng riêng để có thể lưu lịch sử. Hệ thống không tạo tài khoản đăng nhập cho chủ nhà.
+Nộp và quản lý giấy tờ
+Sinh viên tải các giấy tờ cần thiết lên hệ thống. Nếu cần thay thế, hệ thống tạo Document Version mới thay vì xóa phiên bản trước. Phiên bản hiện tại được đánh dấu để phục vụ kiểm tra, trong khi phiên bản cũ vẫn được lưu.
+Cán bộ tiếp nhận và kiểm tra
+Cán bộ xem danh sách hồ sơ cần xử lý, kiểm tra dữ liệu và giấy tờ. Nếu đạt yêu cầu, cán bộ chuyển sang bước tiếp theo. Nếu chưa đạt, cán bộ yêu cầu bổ sung. Các thay đổi quan trọng cần được ghi nhận vào lịch sử và nhật ký.
+Yêu cầu bổ sung thông tin
+Khi hồ sơ thiếu hoặc chưa chính xác, cán bộ tạo yêu cầu bổ sung và thông báo cho sinh viên. Sinh viên cập nhật thông tin hoặc giấy tờ rồi gửi lại. Hệ thống giữ lịch sử để biết hồ sơ đã từng được yêu cầu bổ sung vì lý do nào.
+Xét duyệt hồ sơ
+Người xét duyệt xem toàn bộ thông tin liên quan trước khi đưa ra quyết định. Kết quả có thể là duyệt, từ chối hoặc yêu cầu bổ sung tùy quy trình và quyền. Hệ thống lưu Approval cùng thời điểm, người thực hiện và lý do nếu có.
+Thay đổi địa chỉ
+Sinh viên tạo Request loại CHANGE_ADDRESS. Địa chỉ mới được lưu riêng và chưa thay thế địa chỉ hiện tại. Sau khi yêu cầu được xử lý thành công, hệ thống cập nhật thời gian kết thúc của địa chỉ cũ và xác lập địa chỉ mới là hiện tại.
+Gia hạn hồ sơ
+Khi cần tiếp tục cư trú sau thời hạn đăng ký, sinh viên gửi Request loại RENEWAL. Hệ thống kiểm tra hồ sơ hiện tại, thời gian hiệu lực và điều kiện liên quan. Kết quả xử lý được lưu trong Request và lịch sử yêu cầu.
+Kết thúc ngoại trú
+Sinh viên gửi Request loại TERMINATION khi không còn nhu cầu hoặc không còn đủ điều kiện ngoại trú. Sau khi được xử lý, Registration chuyển sang TERMINATED và lịch sử vẫn được giữ lại.
+Thông báo
+Hệ thống tạo Notification cho các sự kiện quan trọng như hồ sơ được tiếp nhận, yêu cầu bổ sung, kết quả xét duyệt, thay đổi trạng thái hoặc cảnh báo thời hạn. Người dùng có thể xem và đánh dấu thông báo đã đọc.
+SLA và Escalation
+Mỗi quy trình cần xử lý trong khoảng thời gian xác định. SLA Tracking lưu thời điểm bắt đầu, hạn xử lý, thời điểm hoàn thành và trạng thái. Nếu quá hạn, hệ thống có thể tạo Escalation để cảnh báo hoặc chuyển cấp.
+SLA là cơ chế kiểm soát thời gian xử lý và không thay thế trạng thái nghiệp vụ của Registration hoặc Request.
+Xác định các tác nhân
+Sinh viên
+Sinh viên là tác nhân trực tiếp khai báo và sử dụng hệ thống: đăng nhập, tạo hồ sơ, khai báo địa chỉ và chủ nhà, tải giấy tờ, gửi yêu cầu, theo dõi trạng thái và nhận thông báo.
+Cán bộ
+Cán bộ thực hiện tiếp nhận và xử lý hồ sơ, tìm kiếm, kiểm tra thông tin, kiểm tra giấy tờ, yêu cầu bổ sung, cập nhật kết quả và theo dõi SLA.
+Người xét duyệt
+Người xét duyệt thực hiện các quyết định cần thẩm quyền, xem hồ sơ đầy đủ, đánh giá thông tin và ghi nhận kết quả xét duyệt.
+Quản trị viên
+Quản trị viên quản lý tài khoản, vai trò, quyền, cấu hình và nhật ký hệ thống. Quản trị viên không thay thế nghiệp vụ xét duyệt thông thường nếu không được cấp quyền tương ứng.
+SIS
+SIS là hệ thống bên ngoài cung cấp dữ liệu sinh viên. Hệ thống quản lý ngoại trú sử dụng dữ liệu SIS làm nguồn tham chiếu và có thể lưu bản cache phục vụ tra cứu.
+System Scheduler
+System Scheduler thực hiện các tác vụ tự động theo lịch, chẳng hạn kiểm tra thời hạn hồ sơ, cập nhật trạng thái hết hạn và hỗ trợ theo dõi SLA.
+Quy tắc nghiệp vụ
+BR-01 – Nguồn dữ liệu sinh viên
+BR-02 – Chủ nhà không đăng nhập
+BR-03 – Một hồ sơ ACTIVE
+BR-04 – Bảo toàn lịch sử địa chỉ
+BR-05 – Một địa chỉ hiện tại
+BR-06 – Registration và Request
+BR-07 – Một Request đang mở
+BR-08 – Bảo toàn phiên bản tài liệu
+BR-09 – Nộp trễ
+BR-10 – Lịch sử Request
+BR-11 – Quyết định xét duyệt
+BR-12 – SLA độc lập
+BR-13 – Hết hạn
+BR-14 – Không xóa hồ sơ đã kết thúc
+BR-15 – Phân quyền
+BR-16 – Audit
+BR-17 – Thông báo
+BR-18 – Dữ liệu đề xuất
+Yêu cầu chức năng
+Nhóm xác thực và tài khoản
+FR-AUTH-01: Người dùng có thể đăng nhập bằng tài khoản hợp lệ.
+FR-AUTH-02: Hệ thống xác thực trạng thái tài khoản và vai trò trước khi cấp quyền.
+FR-AUTH-03: Hệ thống cấp JWT cho phiên làm việc sau khi xác thực thành công.
+FR-AUTH-04: Người dùng có thể xem và cập nhật các thông tin tài khoản được phép.
+Nhóm chức năng sinh viên
+FR-STU-01: Xem thông tin sinh viên.
+FR-STU-02: Tạo hồ sơ ngoại trú.
+FR-STU-03: Lưu và chỉnh sửa hồ sơ DRAFT.
+FR-STU-04: Gửi hồ sơ ngoại trú.
+FR-STU-05: Khai báo địa chỉ và thông tin chủ nhà.
+FR-STU-06: Tải giấy tờ và phiên bản mới của giấy tờ.
+FR-STU-07: Theo dõi trạng thái hồ sơ.
+FR-STU-08: Xem lịch sử hồ sơ và lịch sử địa chỉ.
+FR-STU-09: Tạo yêu cầu thay đổi địa chỉ.
+FR-STU-10: Tạo yêu cầu gia hạn.
+FR-STU-11: Tạo yêu cầu kết thúc ngoại trú.
+FR-STU-12: Theo dõi trạng thái các yêu cầu.
+FR-STU-13: Xem và nhận thông báo.
+Nhóm chức năng cán bộ
+FR-OFF-01: Xem danh sách hồ sơ cần xử lý.
+FR-OFF-02: Tìm kiếm và lọc hồ sơ.
+FR-OFF-03: Xem chi tiết hồ sơ.
+FR-OFF-04: Kiểm tra thông tin và giấy tờ.
+FR-OFF-05: Yêu cầu sinh viên bổ sung.
+FR-OFF-06: Cập nhật kết quả xử lý.
+FR-OFF-07: Theo dõi lịch sử xử lý.
+FR-OFF-08: Theo dõi SLA và hồ sơ quá hạn.
+FR-OFF-09: Xem thông tin sinh viên, địa chỉ và chủ nhà theo quyền.
+FR-OFF-10: Xem các báo cáo được phân quyền.
+Nhóm chức năng người xét duyệt
+FR-REV-01: Xem danh sách hồ sơ chờ xét duyệt.
+FR-REV-02: Xem toàn bộ thông tin cần thiết của hồ sơ.
+FR-REV-03: Kiểm tra giấy tờ và lịch sử xử lý.
+FR-REV-04: Phê duyệt hồ sơ.
+FR-REV-05: Từ chối hồ sơ.
+FR-REV-06: Yêu cầu bổ sung thông tin khi cần.
+FR-REV-07: Ghi nhận quyết định và lý do.
+Nhóm chức năng quản trị
+FR-ADM-01: Quản lý người dùng.
+FR-ADM-02: Quản lý vai trò.
+FR-ADM-03: Quản lý quyền.
+FR-ADM-04: Gán vai trò cho người dùng.
+FR-ADM-05: Gán quyền cho vai trò.
+FR-ADM-06: Quản lý cấu hình hệ thống.
+FR-ADM-07: Theo dõi Audit Log.
+FR-ADM-08: Theo dõi thông tin quản trị và SLA theo quyền.
+Nhóm thông báo
+FR-NOTI-01: Tạo thông báo từ các sự kiện nghiệp vụ phù hợp.
+FR-NOTI-02: Hiển thị danh sách thông báo của người dùng.
+FR-NOTI-03: Đánh dấu thông báo đã đọc.
+FR-NOTI-04: Lưu thời điểm đọc thông báo.
+Nhóm báo cáo
+FR-REPORT-01: Báo cáo tổng quan số lượng hồ sơ.
+FR-REPORT-02: Thống kê hồ sơ theo khoa.
+FR-REPORT-03: Thống kê hồ sơ theo lớp.
+FR-REPORT-04: Thống kê hồ sơ theo trạng thái.
+FR-REPORT-05: Thống kê theo khoảng thời gian.
+FR-REPORT-06: Thống kê theo địa bàn hoặc địa chỉ.
+FR-REPORT-07: Báo cáo hiệu suất xử lý và SLA.
+Nhóm đồng bộ SIS
+FR-SIS-01: Nhận hoặc đồng bộ thông tin sinh viên từ SIS.
+FR-SIS-02: Lưu bản cache dữ liệu cần thiết để tra cứu.
+FR-SIS-03: Ghi nhận thời điểm cập nhật dữ liệu SIS.
+FR-SIS-04: Không cho phép nghiệp vụ ngoại trú làm sai lệch nguồn dữ liệu SIS.
+Từ điển thuật ngữ
+Bảo mật
+Hệ thống phải bảo vệ thông tin tài khoản, dữ liệu sinh viên và hồ sơ cư trú. Mật khẩu phải được lưu dưới dạng băm; các API cần xác thực và các chức năng nhạy cảm phải kiểm tra quyền truy cập.
+Phân quyền
+Hệ thống áp dụng mô hình Role-Based Access Control. Quyền truy cập được xác định thông qua vai trò và permission, giúp tách biệt chức năng của sinh viên, cán bộ, người xét duyệt và quản trị viên.
+Toàn vẹn dữ liệu
+Dữ liệu phải duy trì được các quan hệ giữa sinh viên, hồ sơ, địa chỉ, chủ nhà, yêu cầu, tài liệu và lịch sử. Các quy tắc quan trọng cần được kiểm tra ở tầng nghiệp vụ và được hỗ trợ bởi ràng buộc cơ sở dữ liệu khi phù hợp.
+Khả năng sử dụng
+Giao diện phải dễ hiểu đối với từng nhóm người dùng. Sinh viên cần giao diện đơn giản, tập trung vào trạng thái và thao tác cá nhân; cán bộ và người xét duyệt cần giao diện hỗ trợ tìm kiếm, lọc và xử lý theo quy trình; quản trị viên cần giao diện quản lý và thống kê.
+Hiệu năng
+Các thao tác tra cứu thông thường cần phản hồi trong thời gian hợp lý. API nên hỗ trợ lọc, phân trang và truy vấn có điều kiện để tránh tải toàn bộ dữ liệu khi số lượng hồ sơ tăng.
+Khả năng bảo trì
+Mã nguồn cần được tổ chức thành các lớp rõ ràng, tách Controller, Service, DTO, Model và Data Access. Việc phân tách giúp dễ kiểm thử, sửa lỗi và mở rộng nghiệp vụ.
+Khả năng mở rộng
+Thiết kế phải cho phép bổ sung loại Request, trạng thái, báo cáo hoặc quy trình mà không phải thay đổi toàn bộ hệ thống. Kiến trúc API cần tạo điều kiện để frontend và các ứng dụng khác sử dụng cùng dịch vụ.
+Khả năng truy vết
+Các thao tác quan trọng phải có thể truy ngược đến người thực hiện, thời điểm, đối tượng và nội dung thay đổi. Đây là cơ sở để kiểm tra sai lệch và hỗ trợ quản trị.
+Khả năng tương thích
+Hệ thống web cần hoạt động ổn định trên các trình duyệt phổ biến và có giao diện thích ứng với các kích thước màn hình phù hợp với môi trường sử dụng.
+CHƯƠNG 3: PHÂN TÍCH HỆ THỐNG
+Mục tiêu phân tích và mô hình
+Phân tích hệ thống nhằm xác định hệ thống phải thực hiện những chức năng nào, ai được phép thực hiện, dữ liệu nào được tạo ra hoặc sử dụng và các điều kiện nghiệp vụ nào phải được bảo đảm. Mô hình hóa giúp biểu diễn các kết quả phân tích bằng những ký hiệu thống nhất thay vì chỉ mô tả bằng văn bản.
+Đối với bài toán quản lý ngoại trú, việc mô hình hóa cần đặc biệt chú ý đến vòng đời của Registration, vòng đời của Request, lịch sử địa chỉ, quản lý phiên bản tài liệu, quy trình xét duyệt, phân quyền và SLA. Những nội dung này có quan hệ với nhau nhưng không nên gộp thành một đối tượng duy nhất.
+Các mô hình chính được sử dụng gồm Use Case Diagram, đặc tả Use Case, Activity Diagram, Sequence Diagram, State Diagram và Data Flow Diagram. Các mô hình được xây dựng thống nhất với các quy tắc nghiệp vụ đã xác định ở chương trước.
+Xác định pham vi hệ thống
+Phạm vi bên trong hệ thống
+Hệ thống quản lý việc khai báo, tiếp nhận, kiểm tra, xét duyệt và theo dõi hồ sơ ngoại trú. Hệ thống lưu trữ thông tin Registration, Address, Landlord, Document, Request, Approval, Notification, SLA Tracking, Audit Log cùng thông tin người dùng và phân quyền.
+Hệ thống cũng cung cấp các chức năng báo cáo, thống kê và quản trị. Người dùng được tiếp cận chức năng tùy theo vai trò và quyền được cấp.
+Phạm vi bên ngoài hệ thống
+SIS được xem là hệ thống bên ngoài cung cấp dữ liệu sinh viên. Hệ thống quản lý ngoại trú không thay thế SIS và không làm thay đổi dữ liệu gốc của SIS. Việc đồng bộ hoặc sử dụng Student Cache chỉ nhằm phục vụ nghiệp vụ quản lý ngoại trú.
+Các dịch vụ hạ tầng như cơ sở dữ liệu, máy chủ triển khai hoặc dịch vụ lưu trữ tệp là thành phần kỹ thuật hỗ trợ hệ thống, không phải tác nhân nghiệp vụ độc lập.
+Xác định tác nhân và vai trò
+Sinh viên
+Sinh viên là người khai báo hồ sơ ngoại trú, cung cấp thông tin nơi ở, chủ nhà và giấy tờ. Sinh viên có thể theo dõi tình trạng hồ sơ, tạo các yêu cầu thay đổi địa chỉ, gia hạn hoặc kết thúc ngoại trú và nhận thông báo.
+Cán bộ
+Cán bộ là người tiếp nhận và xử lý hồ sơ. Cán bộ kiểm tra thông tin, giấy tờ, yêu cầu bổ sung, theo dõi tiến độ và SLA.
+Người xét duyệt
+Người xét duyệt xem hồ sơ đủ điều kiện và đưa ra quyết định theo thẩm quyền. Quyết định được ghi nhận trong Approval.
+Quản trị viên
+Quản trị viên quản lý tài khoản, vai trò, quyền, cấu hình và nhật ký hệ thống theo phạm vi được phân quyền.
+SIS
+SIS cung cấp thông tin sinh viên làm nguồn tham chiếu cho hệ thống quản lý ngoại trú.
+System Scheduler
+Scheduler thực hiện các công việc tự động theo lịch, đặc biệt là kiểm tra thời hạn và hỗ trợ xử lý các bản ghi quá hạn.
+Mô hình use case
+Use Case Diagram mô tả hệ thống dưới góc nhìn của tác nhân. Mỗi Use Case đại diện cho một mục tiêu nghiệp vụ mà tác nhân cần đạt được thông qua hệ thống. Các Use Case được phân nhóm theo vai trò nhằm tránh mô hình quá lớn và giúp xác định trách nhiệm của từng nhóm người dùng.
+Nhóm Use Case của Sinh viên
+UC-AUTH-01 – Đăng nhập
+UC-AUTH-02 – Đăng xuất
+UC-AUTH-03 – Xem thông tin tài khoản
+UC-STU-01 – Xem thông tin sinh viên
+UC-STU-02 – Tạo hồ sơ ngoại trú
+UC-STU-03 – Cập nhật hồ sơ nháp
+UC-STU-04 – Gửi hồ sơ
+UC-STU-05 – Khai báo địa chỉ và chủ nhà
+UC-STU-06 – Nộp giấy tờ
+UC-STU-07 – Theo dõi hồ sơ
+UC-STU-08 – Xem lịch sử địa chỉ
+UC-STU-09 – Yêu cầu thay đổi địa chỉ
+UC-STU-10 – Yêu cầu gia hạn
+UC-STU-11 – Yêu cầu kết thúc ngoại trú
+UC-STU-12 – Theo dõi yêu cầu
+UC-STU-13 – Xem thông báo
+Nhóm Use Case của Cán bộ
+UC-OFF-01 – Xem danh sách hồ sơ cần xử lý
+UC-OFF-02 – Tìm kiếm và lọc hồ sơ
+UC-OFF-03 – Xem chi tiết hồ sơ
+UC-OFF-04 – Kiểm tra giấy tờ
+UC-OFF-05 – Yêu cầu bổ sung
+UC-OFF-06 – Cập nhật kết quả xử lý
+UC-OFF-07 – Xem lịch sử xử lý
+UC-OFF-08 – Theo dõi SLA
+UC-OFF-09 – Tra cứu sinh viên và nơi ở
+UC-OFF-10 – Xem báo cáo
+Nhóm Use Case của Người xét duyệt
+UC-REV-01 – Xem hồ sơ chờ xét duyệt
+UC-REV-02 – Xem chi tiết hồ sơ
+UC-REV-03 – Kiểm tra giấy tờ và lịch sử
+UC-REV-04 – Phê duyệt hồ sơ
+UC-REV-05 – Từ chối hồ sơ
+UC-REV-06 – Yêu cầu bổ sung
+UC-REV-07 – Ghi nhận quyết định
+Nhóm Use Case của Quản trị viên
+UC-ADM-01 – Quản lý người dùng
+UC-ADM-02 – Quản lý vai trò
+UC-ADM-03 – Quản lý quyền
+UC-ADM-04 – Gán vai trò cho người dùng
+UC-ADM-05 – Gán quyền cho vai trò
+UC-ADM-06 – Quản lý cấu hình
+UC-ADM-07 – Xem Audit Log
+UC-ADM-08 – Theo dõi thông tin quản trị
+Use Case của hệ thống bên ngoài và tác vụ tự động
+SIS thực hiện hoặc hỗ trợ các Use Case liên quan đến đồng bộ dữ liệu sinh viên. System Scheduler thực hiện các Use Case tự động như kiểm tra hồ sơ hết hạn và hỗ trợ kiểm soát SLA. Hai tác nhân này không sử dụng giao diện nghiệp vụ giống người dùng thông thường.
+Đặc tả use case tiêu biểu
+Đặc tả Use Case mô tả chi tiết mục tiêu, tiền điều kiện, hậu điều kiện, luồng chính và các luồng ngoại lệ. Trong báo cáo, các Use Case quan trọng nên được đặc tả đầy đủ để làm cơ sở kiểm thử và triển khai.
+UC-STU-02 – Tạo hồ sơ ngoại trú
+Tác nhân chính: Sinh viên.
+Tiền điều kiện: Sinh viên đã đăng nhập và tài khoản đang hoạt động.
+Luồng chính: (1) Sinh viên chọn tạo hồ sơ; (2) hệ thống tạo Registration ở DRAFT; (3) sinh viên nhập thông tin cư trú; (4) hệ thống kiểm tra dữ liệu; (5) sinh viên lưu hồ sơ.
+Luồng ngoại lệ: Nếu dữ liệu bắt buộc thiếu hoặc không hợp lệ, hệ thống thông báo lỗi và không hoàn tất thao tác.
+Hậu điều kiện: Một hồ sơ DRAFT được tạo và có thể tiếp tục chỉnh sửa.
+UC-STU-04 – Gửi hồ sơ
+Tác nhân chính: Sinh viên.
+Tiền điều kiện: Hồ sơ tồn tại ở DRAFT và các thông tin bắt buộc đã được cung cấp.
+Luồng chính: Sinh viên chọn gửi; hệ thống kiểm tra điều kiện; nếu hợp lệ, Registration chuyển sang SUBMITTED và ghi nhận thời điểm gửi.
+Luồng ngoại lệ: Nếu hồ sơ thiếu dữ liệu, thiếu giấy tờ hoặc vi phạm điều kiện nghiệp vụ, hệ thống từ chối gửi và chỉ rõ nội dung cần bổ sung.
+Hậu điều kiện: Hồ sơ ở trạng thái SUBMITTED và sẵn sàng cho bước tiếp nhận.
+UC-OFF-04 – Kiểm tra giấy tờ
+Tác nhân chính: Cán bộ.
+Tiền điều kiện: Cán bộ có quyền xử lý hồ sơ.
+Luồng chính: Cán bộ mở hồ sơ; hệ thống hiển thị danh sách tài liệu và phiên bản; cán bộ kiểm tra nội dung; cán bộ xác nhận kết quả hoặc yêu cầu bổ sung.
+Hậu điều kiện: Kết quả kiểm tra được lưu và có thể tạo thông báo cho sinh viên.
+UC-REV-04 – Phê duyệt hồ sơ
+Tác nhân chính: Người xét duyệt.
+Tiền điều kiện: Hồ sơ đã qua bước kiểm tra và đủ điều kiện xét duyệt.
+Luồng chính: Người xét duyệt mở hồ sơ; xem thông tin và giấy tờ; chọn phê duyệt; nhập thông tin cần thiết; hệ thống tạo Approval và cập nhật trạng thái Registration theo quy trình.
+Luồng ngoại lệ: Nếu hồ sơ chưa đủ điều kiện, người xét duyệt không thể hoàn tất phê duyệt và có thể yêu cầu bổ sung hoặc từ chối theo quyền.
+Hậu điều kiện: Quyết định xét duyệt được lưu và các bên liên quan nhận thông báo.
+UC-STU-09 – Yêu cầu thay đổi địa chỉ
+Tác nhân chính: Sinh viên.
+Tiền điều kiện: Sinh viên có hồ sơ phù hợp để thực hiện thay đổi.
+Luồng chính: Sinh viên chọn thay đổi địa chỉ; nhập địa chỉ mới; hệ thống tạo Request CHANGE_ADDRESS; địa chỉ mới được lưu ở dạng đề xuất; Request được gửi để xử lý.
+Hậu điều kiện: Địa chỉ hiện tại chưa bị thay thế cho đến khi yêu cầu được chấp thuận.
+UC-STU-10 – Yêu cầu gia hạn
+Tác nhân chính: Sinh viên.
+Tiền điều kiện: Hồ sơ hiện tại đáp ứng điều kiện gia hạn.
+Luồng chính: Sinh viên tạo Request RENEWAL; nhập thông tin; gửi yêu cầu; hệ thống kiểm tra Request đang mở và ghi nhận yêu cầu.
+Hậu điều kiện: Request gia hạn được lưu và chuyển sang quy trình xử lý.
+UC-STU-11 – Yêu cầu kết thúc ngoại trú
+Tác nhân chính: Sinh viên.
+Tiền điều kiện: Có Registration đang phù hợp để kết thúc.
+Luồng chính: Sinh viên chọn kết thúc; nhập lý do nếu cần; hệ thống tạo Request TERMINATION; yêu cầu được chuyển đến bước xử lý.
+Hậu điều kiện: Sau khi xử lý thành công, Registration được ghi nhận TERMINATED và lịch sử vẫn được bảo toàn.
+Activity diagram
+Activity Diagram dùng để mô tả luồng công việc của một nghiệp vụ từ điểm bắt đầu đến điểm kết thúc, đồng thời thể hiện các nhánh điều kiện. Với hệ thống quản lý ngoại trú, Activity Diagram nên được xây dựng cho các quy trình có nhiều bước và nhiều tác nhân.
+Luồng tạo và gửi hồ sơ
+Luồng bắt đầu khi sinh viên đăng nhập và chọn tạo hồ sơ. Hệ thống tạo bản nháp, sinh viên nhập thông tin sinh viên, địa chỉ, chủ nhà và giấy tờ. Sau mỗi bước, hệ thống kiểm tra dữ liệu. Nếu chưa đầy đủ, sinh viên tiếp tục chỉnh sửa; nếu đầy đủ, sinh viên gửi hồ sơ. Hệ thống ghi nhận thời điểm gửi và chuyển hồ sơ sang SUBMITTED.
+Luồng xử lý và xét duyệt
+Cán bộ tiếp nhận hồ sơ và kiểm tra. Nếu hồ sơ thiếu thông tin, cán bộ gửi yêu cầu bổ sung và quy trình quay về phía sinh viên. Nếu hồ sơ hợp lệ, hồ sơ được chuyển đến người xét duyệt. Người xét duyệt có thể duyệt, từ chối hoặc yêu cầu bổ sung. Mỗi nhánh đều tạo dữ liệu lịch sử và thông báo tương ứng.
+Luồng thay đổi địa chỉ
+Sinh viên tạo Request CHANGE_ADDRESS và nhập địa chỉ mới. Hệ thống kiểm tra điều kiện và tạo yêu cầu. Trong thời gian chờ xử lý, địa chỉ hiện tại vẫn giữ nguyên. Sau khi yêu cầu được chấp thuận, hệ thống cập nhật kết thúc địa chỉ cũ và xác lập địa chỉ mới. Nếu yêu cầu bị từ chối, địa chỉ hiện tại không thay đổi.
+Luồng tự động xử lý hết hạn
+Scheduler chạy theo lịch, tìm các Registration có thời hạn đã qua nhưng vẫn chưa được kết thúc hoặc gia hạn theo quy định. Hệ thống kiểm tra điều kiện, cập nhật trạng thái EXPIRED nếu phù hợp và ghi nhận lịch sử. Nếu có chính sách thông báo, hệ thống gửi Notification đến người liên quan.
+Sequence diagram
+Sequence Diagram mô tả thứ tự trao đổi thông điệp giữa tác nhân, giao diện, API, service và cơ sở dữ liệu. Mô hình này giúp xác định trách nhiệm của từng thành phần và là cơ sở cho thiết kế API.
+Sequence đăng nhập
+Sinh viên gửi Username và Password từ giao diện đến Auth API. Controller chuyển dữ liệu cho lớp xử lý xác thực. Hệ thống truy vấn User và UserRole, kiểm tra mật khẩu, lấy vai trò và tạo JWT. Token được trả về frontend để sử dụng trong các request tiếp theo.
+Sequence tạo hồ sơ
+Frontend gửi yêu cầu tạo Registration đến API. Controller xác thực JWT và kiểm tra quyền. Service kiểm tra Student và các điều kiện nghiệp vụ, sau đó tạo Registration ở DRAFT và lưu xuống SQL Server. API trả kết quả về frontend.
+Sequence gửi hồ sơ
+Frontend gửi yêu cầu submit. API kiểm tra Registration thuộc về sinh viên, kiểm tra dữ liệu bắt buộc và các quy tắc liên quan. Nếu hợp lệ, Service cập nhật trạng thái, ghi thời điểm gửi, tạo lịch sử hoặc Audit Log cần thiết và trả kết quả.
+Sequence thay đổi địa chỉ
+Frontend gửi Request CHANGE_ADDRESS cùng dữ liệu địa chỉ mới. API kiểm tra quyền và Request đang mở. Service tạo Request và dữ liệu địa chỉ đề xuất. Địa chỉ hiện tại không bị cập nhật ngay. Sau khi được duyệt, Service thực hiện chuyển đổi địa chỉ theo quy tắc nghiệp vụ và lưu lịch sử.
+State diagram
+State Diagram tập trung vào vòng đời của một đối tượng. Trong bài toán này, Registration và Request là hai đối tượng cần mô hình hóa trạng thái riêng vì chúng có vòng đời khác nhau.
+Trạng thái của Registration
+Registration có thể đi qua các trạng thái DRAFT, SUBMITTED, UNDER_REVIEW, NEED_MORE_INFO, APPROVED, ACTIVE, REJECTED, WITHDRAWN, EXPIRED và TERMINATED tùy theo luồng nghiệp vụ. DRAFT là giai đoạn sinh viên chuẩn bị hồ sơ; SUBMITTED thể hiện hồ sơ đã gửi; UNDER_REVIEW thể hiện đang được xem xét; NEED_MORE_INFO thể hiện cần bổ sung; APPROVED và ACTIVE phản ánh các giai đoạn sau khi được chấp thuận theo quy trình; REJECTED, WITHDRAWN, EXPIRED và TERMINATED phản ánh các kết thúc khác nhau.
+Cần phân biệt trạng thái với các thuộc tính bổ sung. Ví dụ, nộp trễ không nên tạo một trạng thái mới nếu nghiệp vụ chỉ cần một cờ hoặc thông tin thời gian. Tương tự, quá SLA là thông tin theo dõi xử lý chứ không phải trạng thái thay thế của Registration.
+Trạng thái của Request
+Request có vòng đời riêng, bắt đầu từ lúc tạo và gửi, sau đó được tiếp nhận, xử lý và kết thúc bằng kết quả phù hợp. Request History lưu các lần chuyển trạng thái, người thực hiện, thời điểm và lý do. Việc tách Request History giúp không mất các trạng thái trung gian.
+Các chuyển trạng thái quan trọng
+Một số chuyển trạng thái cần kiểm soát chặt chẽ: DRAFT → SUBMITTED khi sinh viên gửi; SUBMITTED → UNDER_REVIEW khi cán bộ bắt đầu xử lý; UNDER_REVIEW → NEED_MORE_INFO khi cần bổ sung; UNDER_REVIEW → APPROVED hoặc REJECTED sau quyết định; hồ sơ phù hợp sau phê duyệt có thể chuyển sang ACTIVE; ACTIVE → EXPIRED khi hết hạn; ACTIVE → TERMINATED khi kết thúc ngoại trú.
+Data flow diagram
+DFD mô tả cách dữ liệu đi vào hệ thống, được xử lý và lưu trữ trong các kho dữ liệu. DFD giúp nhìn hệ thống theo góc độ luồng dữ liệu thay vì cấu trúc lớp hoặc bảng.
+DFD mức ngữ cảnh
+Ở mức ngữ cảnh, hệ thống quản lý ngoại trú được xem như một tiến trình duy nhất. Sinh viên gửi thông tin hồ sơ, địa chỉ, giấy tờ và yêu cầu; hệ thống trả trạng thái, kết quả và thông báo. Cán bộ gửi dữ liệu xử lý và nhận danh sách hồ sơ, thông tin cần kiểm tra và báo cáo. Người xét duyệt gửi quyết định và nhận hồ sơ chờ xét duyệt. Quản trị viên gửi thông tin quản trị. SIS trao đổi dữ liệu sinh viên với hệ thống.
+DFD mức 0
+Ở mức 0, hệ thống có thể được phân rã thành các tiến trình chính: P1 – Quản lý xác thực và người dùng; P2 – Quản lý hồ sơ ngoại trú; P3 – Quản lý địa chỉ và chủ nhà; P4 – Quản lý giấy tờ; P5 – Quản lý yêu cầu và xét duyệt; P6 – Quản lý thông báo; P7 – Quản lý SLA và cảnh báo; P8 – Báo cáo và thống kê; P9 – Đồng bộ SIS.
+Các kho dữ liệu
+D1 – Registration: lưu hồ sơ ngoại trú và trạng thái vòng đời.
+D2 – Address: lưu địa chỉ hiện tại và lịch sử địa chỉ.
+D3 – Landlord: lưu thông tin chủ nhà.
+D4 – Document: lưu thông tin tài liệu và liên kết hồ sơ.
+D5 – Request: lưu các yêu cầu phát sinh.
+D6 – Notification: lưu thông báo của người dùng.
+D7 – Audit Log/History: lưu lịch sử và thông tin truy vết.
+D8 – User/Role/Permission/Configuration: lưu thông tin quản trị và phân quyền.
+D9 – SLA/Escalation: lưu tiến độ, hạn xử lý và thông tin quá hạn.
+D10 – Student Cache: lưu dữ liệu sinh viên được đồng bộ để tra cứu.
+Mối quan hệ giữa các mô hình 
+Các mô hình trong hệ thống không độc lập mà bổ sung cho nhau. Use Case xác định chức năng và tác nhân; Activity mô tả luồng công việc; Sequence mô tả tương tác theo thời gian; State mô tả vòng đời đối tượng; DFD mô tả luồng dữ liệu. Khi các mô hình cùng mô tả một nghiệp vụ, nội dung giữa chúng phải nhất quán.
+Ví dụ, nghiệp vụ thay đổi địa chỉ được xác định trong Use Case UC-STU-09, được mô tả bằng Activity Diagram qua các bước tạo yêu cầu và xét duyệt, được thể hiện bằng Sequence Diagram qua các lời gọi frontend – API – service – database, đồng thời liên quan đến State của Request và Registration. DFD thể hiện dữ liệu Request và Address được tạo, đọc hoặc cập nhật ở những tiến trình tương ứng.
+Việc kiểm tra chéo giữa các mô hình giúp hạn chế tình trạng một chức năng xuất hiện trong tài liệu nghiệp vụ nhưng không có Use Case, hoặc có Use Case nhưng không có dữ liệu và API tương ứng.
+CHƯƠNG 4: THIẾT KẾ HỆ THỐNG
+Mục tiêu thiết kế
+Mục tiêu của giai đoạn thiết kế là xác định cách hệ thống sẽ được xây dựng ở mức đủ chi tiết để có thể triển khai thành chương trình. Nếu giai đoạn phân tích trả lời hệ thống cần làm gì thì giai đoạn thiết kế xác định hệ thống thực hiện các chức năng đó bằng thành phần nào, dữ liệu nào và các thành phần giao tiếp ra sao.
+Tách biệt giao diện, API, nghiệp vụ và dữ liệu.
+Bảo đảm lưu đầy đủ vòng đời hồ sơ, địa chỉ, giấy tờ, yêu cầu và lịch sử.
+Cung cấp API thống nhất cho Sinh viên, Cán bộ, Người xét duyệt và Quản trị viên.
+Bảo đảm xác thực và phân quyền theo vai trò.
+Bảo toàn lịch sử thay đổi quan trọng.
+Hỗ trợ SLA, quá hạn và escalation.
+Tạo nền tảng thuận lợi cho kiểm thử, bảo trì và mở rộng.
+Kiến trúc tổng thể của hệ thống
+Hệ thống được thiết kế theo kiến trúc nhiều lớp. Frontend chịu trách nhiệm hiển thị và tương tác; Backend/API tiếp nhận request, xác thực, phân quyền và xử lý nghiệp vụ; Entity Framework Core thực hiện truy cập SQL Server. SIS là hệ thống bên ngoài cung cấp dữ liệu sinh viên; Scheduler hỗ trợ các tác vụ tự động.
+Các thành phần chính
+Frontend: giao diện web cho các nhóm người dùng.
+ASP.NET Core Web API: cung cấp HTTP API, xác thực và phân quyền.
+Service layer: tập trung các quy tắc nghiệp vụ.
+Entity Framework Core: ánh xạ đối tượng với SQL Server.
+SQL Server: lưu trữ dữ liệu nghiệp vụ và hệ thống.
+SIS: nguồn dữ liệu sinh viên bên ngoài.
+Scheduler: xử lý định kỳ như hết hạn, SLA và thông báo.
+Luồng xử lý tổng quát
+Người dùng thao tác trên Frontend. Frontend gửi HTTP request đến Backend kèm access token khi cần xác thực. API kiểm tra token và quyền truy cập, sau đó gọi service tương ứng. Service kiểm tra quy tắc nghiệp vụ và truy xuất dữ liệu thông qua Entity Framework Core. Kết quả được trả về dưới dạng DTO cho Frontend. Các thao tác quan trọng có thể đồng thời tạo lịch sử, audit và notification.
+Thiết kế phân lớp
+Presentation/API Layer
+Controller tiếp nhận HTTP request, kiểm tra đầu vào ở mức giao tiếp, lấy thông tin người dùng từ claims, gọi service và trả response. Logic nghiệp vụ không nên tập trung toàn bộ trong Controller.
+Business/Service Layer
+Service layer xử lý các quy tắc như kiểm tra hồ sơ ACTIVE, yêu cầu đang mở, địa chỉ CURRENT, phê duyệt, lịch sử, SLA và thông báo. Các nghiệp vụ liên quan nhiều bảng được đặt tại đây để bảo đảm tính nhất quán.
+Data Access Layer
+Entity Framework Core được sử dụng để làm việc với SQL Server. DbContext quản lý DbSet và quan hệ giữa entity. Những nghiệp vụ cập nhật nhiều bản ghi nên sử dụng transaction khi cần tính nguyên tử.
+Database Layer
+SQL Server lưu trữ dữ liệu cuối cùng. Khóa chính, khóa ngoại, CHECK constraint và index hỗ trợ toàn vẹn dữ liệu và hiệu năng. Các bảng lịch sử giữ lại quá trình thay đổi thay vì ghi đè dữ liệu cũ.
+Thiết kế cơ sở dữ liệu
+REGISTRATION là thực thể trung tâm của hệ thống. ADDRESS, LANDLORD, DOCUMENT, REQUEST, APPROVAL, SLATRACKING và NOTIFICATION mở rộng thông tin và vòng đời xử lý. USER, ROLE, PERMISSION và các bảng liên kết hỗ trợ xác thực và phân quyền.
+Nhóm người dùng và phân quyền
+USER lưu tài khoản; ROLE lưu vai trò; PERMISSION lưu quyền; USER_ROLE biểu diễn quan hệ nhiều-nhiều giữa User và Role; ROLE_PERMISSION biểu diễn quan hệ nhiều-nhiều giữa Role và Permission.
+Nhóm dữ liệu sinh viên
+STUDENT lưu dữ liệu sinh viên được sử dụng trong nghiệp vụ. STUDENT_CACHE lưu dữ liệu đồng bộ từ SIS để phục vụ đối chiếu và giảm phụ thuộc trực tiếp vào hệ thống bên ngoài.
+Nhóm hồ sơ ngoại trú
+REGISTRATION đại diện cho hồ sơ ngoại trú. Một sinh viên có thể có nhiều hồ sơ theo thời gian nhưng tại một thời điểm chỉ được phép có tối đa một hồ sơ ACTIVE. ADDRESS lưu lịch sử nơi ở và LANDLORD lưu thông tin chủ nhà.
+Nhóm giấy tờ
+DOCUMENT đại diện cho loại giấy tờ; DOCUMENT_VERSION lưu từng phiên bản tệp. Khi thay thế giấy tờ, phiên bản cũ vẫn được giữ để phục vụ kiểm tra lịch sử.
+Nhóm yêu cầu và phê duyệt
+REQUEST lưu yêu cầu gia hạn, thay đổi địa chỉ hoặc kết thúc ngoại trú. REQUEST_HISTORY lưu lịch sử trạng thái. APPROVAL lưu quyết định của người xét duyệt.
+Nhóm SLA, thông báo và audit
+SLA_TRACKING theo dõi thời điểm bắt đầu, hạn xử lý và hoàn thành. ESCALATION lưu thông tin chuyển cấp. NOTIFICATION lưu thông báo. AUDIT_LOG ghi nhận các thao tác quan trọng để truy vết.
+Thiết kế trạng thái và chuyển trạng thái
+Registration sử dụng các trạng thái DRAFT, SUBMITTED, UNDER_REVIEW, NEED_MORE_INFO, APPROVED, ACTIVE, REJECTED, WITHDRAWN, EXPIRED và TERMINATED. Backend phải kiểm tra trạng thái trước khi cho phép chuyển đổi.
+DRAFT → SUBMITTED khi sinh viên gửi hồ sơ.
+SUBMITTED → UNDER_REVIEW khi hồ sơ được tiếp nhận.
+UNDER_REVIEW → NEED_MORE_INFO khi cần bổ sung.
+NEED_MORE_INFO → UNDER_REVIEW khi thông tin bổ sung được gửi.
+UNDER_REVIEW → APPROVED khi được chấp thuận.
+APPROVED → ACTIVE khi bắt đầu có hiệu lực.
+UNDER_REVIEW → REJECTED khi không đáp ứng điều kiện.
+DRAFT/SUBMITTED → WITHDRAWN khi được phép rút.
+ACTIVE → EXPIRED khi đến hạn.
+ACTIVE → TERMINATED khi hoàn tất quy trình kết thúc.
+Frontend có thể ẩn các thao tác không hợp lệ để cải thiện trải nghiệm, nhưng Backend vẫn phải kiểm tra lại nhằm bảo vệ dữ liệu trước request trực tiếp.
+Thiết kế nghiệp vụ chính
+Đăng nhập
+Người dùng gửi username và password. Backend kiểm tra tài khoản, trạng thái và mật khẩu đã băm. Nếu hợp lệ, hệ thống phát hành JWT chứa các claims cần thiết như UserId, username, họ tên và role.
+Tạo hồ sơ ngoại trú
+Sinh viên tạo Registration ở DRAFT, nhập nơi ở, chủ nhà và giấy tờ. Hệ thống kiểm tra điều kiện tạo hồ sơ và bảo đảm không có hồ sơ ACTIVE thứ hai.
+Gửi hồ sơ
+Hệ thống kiểm tra trường bắt buộc, giấy tờ và trạng thái. Nếu hợp lệ, Registration chuyển SUBMITTED, lưu SubmittedAt và có thể khởi tạo SLA.
+Kiểm tra và bổ sung
+Cán bộ kiểm tra dữ liệu và giấy tờ. Nếu thiếu hoặc chưa hợp lệ, hồ sơ chuyển NEED_MORE_INFO và ghi rõ nội dung cần bổ sung.
+Phê duyệt
+Reviewer kiểm tra thông tin sinh viên, địa chỉ, chủ nhà, giấy tờ và lịch sử. Quyết định được lưu trong APPROVAL.
+Thay đổi nơi ở
+Thay đổi địa chỉ được xử lý như Request. Địa chỉ mới không ghi đè địa chỉ hiện tại trước khi được duyệt; sau khi duyệt, địa chỉ cũ kết thúc hiệu lực và địa chỉ mới trở thành địa chỉ hiện hành.
+Gia hạn
+Yêu cầu gia hạn gắn với Registration hiện tại. Sau khi được duyệt, thời hạn hồ sơ được cập nhật theo quy tắc nghiệp vụ.
+Kết thúc ngoại trú
+Sinh viên tạo yêu cầu kết thúc. Sau khi xử lý hợp lệ, hồ sơ chuyển TERMINATED và lưu thời điểm kết thúc.
+Hết hạn tự động
+Scheduler kiểm tra hồ sơ ACTIVE đã đến hạn, chuyển sang EXPIRED và tạo audit/thông báo phù hợp. Tác vụ nên idempotent để chạy lại không gây thay đổi lặp.
+Thiết kế API
+API sử dụng REST và tổ chức endpoint theo tài nguyên nghiệp vụ. Một số endpoint tiêu biểu gồm:
+Nhóm
+Endpoint
+Mục đích
+Auth
+POST /api/Auth/login
+Đăng nhập và cấp JWT
+Student
+GET /api/Student
+Tra cứu sinh viên
+Registration
+GET /api/Registration/student/{studentId}
+Lấy hồ sơ sinh viên
+Address
+GET /api/Address/registration/{registrationId}
+Lấy địa chỉ
+Document
+GET/POST /api/Document
+Quản lý giấy tờ
+Request
+GET /api/Request/registration/{registrationId}
+Lấy yêu cầu
+RequestHistory
+GET /api/RequestHistory/request/{requestId}
+Xem lịch sử
+Notification
+GET /api/Notification/user/{userId}
+Lấy thông báo
+Report
+GET /api/Report/overview
+Tổng hợp báo cáo
+Thiết kế xác thực và phân quyền
+Hệ thống sử dụng JWT Bearer. Sau khi đăng nhập, token được gửi trong Authorization header. Backend kiểm tra chữ ký, issuer, audience và thời hạn trước khi cho phép truy cập tài nguyên được bảo vệ.
+Các vai trò chính gồm STUDENT, OFFICER, REVIEWER và ADMIN. Sinh viên chỉ thao tác trên dữ liệu thuộc phạm vi của mình; cán bộ xử lý nghiệp vụ; reviewer thực hiện xét duyệt; admin quản trị người dùng, vai trò, quyền và cấu hình. Phân quyền phải được kiểm tra tại Backend.
+Thiết kế thông báo và lịch sử
+Notification được tạo khi có các sự kiện như gửi hồ sơ, yêu cầu bổ sung, phê duyệt, từ chối, thay đổi trạng thái hoặc sắp hết hạn. Thông báo liên kết với User và có thể liên kết Registration hoặc Request.
+Các thay đổi trạng thái và quyết định quan trọng được lưu lịch sử và audit. Nhờ đó dữ liệu hiện tại và quá trình thay đổi được phân biệt rõ ràng, hỗ trợ truy vết khi cần.
+Thiết kế SLA và Escalation
+SLA_TRACKING lưu StartedAt, DueAt, CompletedAt và Status. Khi nghiệp vụ hoàn thành, CompletedAt được ghi nhận để tính thời gian xử lý. Nếu quá DueAt mà chưa hoàn thành, hệ thống đánh dấu quá hạn và có thể tạo ESCALATION.
+Việc tách SLA thành thực thể riêng giúp thống kê thời gian xử lý, tỷ lệ đúng hạn và số trường hợp quá hạn. Các thông số SLA nên được cấu hình thay vì hard-code trong giao diện.
+Thiết kế giao diện người dùng
+Giao diện Sinh viên 
+Giao diện Sinh viên tập trung vào trạng thái hồ sơ, nơi ở hiện tại, giấy tờ, yêu cầu và thông báo. Dashboard ưu tiên việc cần làm và thời hạn. Các thao tác tạo hồ sơ, đổi địa chỉ, gia hạn và kết thúc ngoại trú được bố trí theo luồng nghiệp vụ.
+Giao diện Cán bộ
+Giao diện Cán bộ tập trung vào hàng đợi xử lý, bộ lọc, trạng thái, yêu cầu và SLA. Màn hình chi tiết cho phép xem thông tin sinh viên, địa chỉ, chủ nhà, giấy tờ và lịch sử.
+Giao diện Người xét duyệt
+Giao diện Reviewer tập trung vào một hồ sơ, hiển thị đầy đủ thông tin cần thiết trước khi đưa ra quyết định. Các hành động duyệt, từ chối hoặc yêu cầu bổ sung phải có thông tin giải thích phù hợp.
+Giao diện Quản trị viên
+Giao diện Admin tập trung vào người dùng, vai trò, quyền, cấu hình, audit và báo cáo; ưu tiên tìm kiếm, lọc, chỉnh sửa có kiểm soát và theo dõi lịch sử.
+Thiết kế bảo mật và toàn vẹn dữ liệu
+Mật khẩu chỉ lưu dưới dạng hash.
+JWT có thời hạn và được kiểm tra khi request đến API.
+Không tin tưởng UserId/StudentId do client tự gửi nếu có thể xác định từ claims.
+Kiểm tra quyền ở Backend cho endpoint nhạy cảm.
+Sử dụng khóa ngoại và constraint để bảo vệ toàn vẹn dữ liệu.
+Sử dụng transaction cho nghiệp vụ cập nhật nhiều bản ghi khi cần.
+Không xóa dữ liệu lịch sử quan trọng.
+Không đặt khóa bí mật trực tiếp trong Frontend.
+Thiết kế khả năng mở rộng và bảo trì
+Kiến trúc nhiều lớp cho phép thay đổi giao diện mà không phải thay đổi toàn bộ Backend. Service tách nghiệp vụ khỏi Controller, DTO tách hợp đồng API khỏi entity database và các module báo cáo, SLA, thông báo có thể được kiểm thử độc lập. Khi hệ thống phát triển, có thể bổ sung caching, logging tập trung hoặc dịch vụ thông báo mà không phải thiết kế lại toàn bộ hệ thống.
+CHƯƠNG 5: XÂY DỰNG VÀ CÀI ĐẶT
+Môi trường và công cụ phát triển
+Hệ điều hành và môi trường phát triển
+Hệ thống được phát triển và kiểm thử trong môi trường Windows. Máy phát triển cần có SQL Server hoặc SQL Server Express, .NET SDK và trình duyệt hiện đại. Các thành phần được tổ chức độc lập để khi thay đổi một lớp không làm ảnh hưởng trực tiếp đến các lớp còn lại.
+Công nghệ Backend
+Backend sử dụng ASP.NET Core Web API và ngôn ngữ C#. Đây là lớp trung tâm cung cấp API cho đăng nhập, sinh viên, hồ sơ ngoại trú, địa chỉ, chủ nhà, giấy tờ, yêu cầu, phê duyệt, thông báo và báo cáo.
+Entity Framework Core và SQL Server
+Entity Framework Core được sử dụng để ánh xạ các lớp C# với bảng SQL Server. SQL Server đảm nhiệm lưu trữ tập trung, khóa, quan hệ, ràng buộc và chỉ mục.
+Công cụ kiểm thử và quản lý mã nguồn
+Swagger/OpenAPI được dùng để kiểm tra API. Git và GitHub được dùng để quản lý phiên bản và lưu trữ mã nguồn.
+Cấu trúc mã nguồn
+Mã nguồn được tổ chức thành các nhóm rõ ràng nhằm thuận tiện cho phát triển, kiểm thử và bàn giao.
+Cài đặt cơ sở dữ liệu
+Khởi tạo cơ sở dữ liệu
+Cơ sở dữ liệu được triển khai trên SQL Server với tên QLNT_TKYC. Các script trong thư mục database được thực hiện theo thứ tự để tạo cấu trúc và dữ liệu.
+Tạo các bảng nghiệp vụ
+Các nhóm bảng phục vụ người dùng và phân quyền, sinh viên, hồ sơ ngoại trú, địa chỉ và chủ nhà, giấy tờ, yêu cầu và phê duyệt, thông báo, SLA, escalation, audit và cấu hình.
+Khóa, ràng buộc và chỉ mục
+Khóa chính định danh bản ghi; khóa ngoại duy trì quan hệ. CHECK constraint kiểm soát giá trị hợp lệ và index hỗ trợ truy vấn.
+Dữ liệu mẫu
+Dữ liệu mẫu cần thể hiện nhiều sinh viên, hồ sơ, trạng thái, thời gian, yêu cầu và tình huống SLA để phục vụ kiểm thử.
+Cài đặt Backend
+Khởi tạo ASP.NET Core Web API
+Ứng dụng đăng ký DbContext, JWT, Swagger, middleware và các Controller khi khởi động.
+Kết nối SQL Server
+Connection string được cấu hình trong appsettings.json. Khi triển khai thực tế, thông tin nhạy cảm cần được quản lý bằng cấu hình an toàn.
+DbContext và ánh xạ dữ liệu
+DbContext quản lý các DbSet và quan hệ giữa thực thể, cho phép truy vấn và cập nhật dữ liệu theo thiết kế.
+Swagger/OpenAPI
+Swagger cung cấp giao diện thử endpoint, request, response và xác thực Bearer Token.
+Cài đặt xác thực và đăng nhập
+Quy trình đăng nhập
+Người dùng gửi username và password. Backend xác thực mật khẩu, kiểm tra trạng thái tài khoản và tạo JWT chứa thông tin nhận diện cùng role.
+Bảo vệ endpoint
+Các endpoint cần dữ liệu người dùng được bảo vệ bằng Authorize. Quyền truy cập có thể tiếp tục được kiểm soát theo role hoặc permission.
+Cài đặt các API nghiệp vụ
+Student API
+Cung cấp truy vấn và quản lý thông tin sinh viên trong phạm vi hệ thống.
+Registration API
+Xử lý vòng đời hồ sơ ngoại trú: tạo, truy vấn, cập nhật ở trạng thái cho phép và gửi hồ sơ.
+Address và Landlord API
+Quản lý địa chỉ và thông tin chủ nhà. Chủ nhà không đăng nhập hệ thống; sinh viên khai báo và cung cấp xác nhận phù hợp.
+Document và DocumentVersion API
+Quản lý giấy tờ và các phiên bản tải lên, bảo toàn lịch sử thay đổi.
+Request và RequestHistory API
+Quản lý yêu cầu gia hạn, chuyển nơi ở, kết thúc và lịch sử thay đổi trạng thái.
+Approval API
+Lưu quyết định xét duyệt, lý do và thời điểm xử lý.
+Notification API
+Quản lý thông báo liên quan đến hồ sơ, yêu cầu và kết quả xử lý.
+Report API
+Cung cấp dữ liệu tổng hợp theo khoa, lớp, địa điểm, trạng thái, thời gian và hiệu suất SLA.
+Cài đặt các quy tắc xử lý nghiệp vụ
+Kiểm soát số lượng hồ sơ ACTIVE
+Một sinh viên không được đồng thời có nhiều hơn một Registration ACTIVE. Backend phải kiểm tra trước khi tạo hoặc phê duyệt.
+Kiểm soát yêu cầu đang mở
+Một Registration chỉ có tối đa một Request đang mở tại cùng thời điểm.
+Quản lý thay đổi địa chỉ
+Địa chỉ mới không ghi đè địa chỉ hiện tại ngay khi gửi yêu cầu. Chỉ sau khi được phê duyệt, địa chỉ mới trở thành địa chỉ hiện tại; địa chỉ cũ vẫn được lưu.
+Kiểm soát chuyển trạng thái
+Client không được tự ý gửi trạng thái để bỏ qua quy trình. Backend kiểm tra trạng thái hiện tại, vai trò và điều kiện nghiệp vụ.
+Lưu lịch sử và audit
+Các thay đổi quan trọng được lưu trong RequestHistory hoặc AuditLog để xác định người thực hiện, thời điểm và lý do.
+Cài đặt SLA và tác vụ tự động
+Theo dõi SLA
+SLA_TRACKING lưu StartedAt, DueAt, CompletedAt và trạng thái để xác định tiến độ.
+Xử lý hết hạn hồ sơ
+Scheduler định kỳ kiểm tra hồ sơ ACTIVE vượt ngày hết hạn và chuyển sang EXPIRED khi đủ điều kiện.
+Escalation
+Công việc vượt SLA có thể tạo ESCALATION theo cấp độ cấu hình để theo dõi và phân công.
+Tính lặp lại an toàn
+Scheduler phải kiểm tra trạng thái hiện tại để tránh tạo thay đổi hoặc escalation trùng lặp.
+Cài đặt Frontend
+Giao diện sinh viên
+Giao diện tập trung vào trạng thái hồ sơ, nơi ở, giấy tờ, yêu cầu và thông báo; các thao tác thường dùng được đặt rõ ràng.
+Giao diện cán bộ
+Tập trung vào danh sách xử lý, bộ lọc, hồ sơ, giấy tờ, yêu cầu và SLA.
+Giao diện reviewer
+Thiết kế theo workspace xét duyệt, hiển thị thông tin sinh viên, nơi ở, giấy tờ, lịch sử và các thao tác xét duyệt.
+Giao diện administrator
+Tập trung vào người dùng, role, permission, cấu hình, audit log và báo cáo.
+Kết nối Frontend với Backend
+API Client
+Frontend giao tiếp qua HTTP/HTTPS. API client tập trung base URL, token và xử lý lỗi; không truy cập trực tiếp SQL Server.
+Bearer Token
+JWT được gửi trong header Authorization cho các request cần xác thực.
+Xử lý trạng thái request
+Frontend cần thể hiện loading, thành công và lỗi; trường hợp token hết hạn cần đưa người dùng về đăng nhập.
+Kiểm tra hệ thống sau cài đặt
+Kiểm tra cơ sở dữ liệu
+Kiểm tra kết nối, bảng, khóa ngoại, dữ liệu mẫu, constraint và index.
+Kiểm tra Backend
+Dùng Swagger kiểm tra endpoint hợp lệ, không hợp lệ và endpoint có xác thực.
+Kiểm tra đăng nhập và phân quyền
+Kiểm tra tài khoản hợp lệ, mật khẩu sai, tài khoản không hoạt động và quyền từng role.
+Kiểm tra quy trình nghiệp vụ
+Kiểm tra tạo/gửi hồ sơ, tiếp nhận, giấy tờ, bổ sung, xét duyệt, chuyển địa chỉ, gia hạn và kết thúc.
+Kiểm tra báo cáo
+Đối chiếu kết quả tổng hợp với dữ liệu nguồn, tránh tính trùng.
+Quy trình chạy hệ thống trong môi trường phát triển
+Để kiểm tra toàn bộ hệ thống Quản lý Ngoại trú Sinh viên trong môi trường phát triển, cần khởi động các thành phần theo đúng thứ tự. Quy trình bắt đầu từ hệ quản trị cơ sở dữ liệu, sau đó khởi động Backend API và cuối cùng là Frontend. Việc thực hiện theo trình tự giúp bảo đảm Backend có thể kết nối đến cơ sở dữ liệu trước khi tiếp nhận các request từ giao diện người dùng.
+Khởi động cơ sở dữ liệu
+Sau khi SQL Server hoạt động, có thể sử dụng SQL Server Management Studio để kiểm tra nhanh khả năng truy cập database. Một số nội dung cần kiểm tra gồm:
+Database QLNT_TKYC tồn tại. 
+Các bảng nghiệp vụ đã được tạo. 
+Dữ liệu mẫu đã được nạp. 
+Các khóa ngoại hoạt động đúng. 
+Không xảy ra lỗi kết nối hoặc lỗi quyền truy cập.
+Khởi động Backend 
+Sau khi cơ sở dữ liệu sẵn sàng, tiến hành mở thư mục:
+source/backend/QLNT_TKYC.API
+Sau đó chạy ứng dụng ASP.NET Core. Backend sẽ đọc cấu hình, khởi tạo DbContext, kết nối SQL Server, đăng ký JWT Authentication, các Controller và các Service cần thiết.
+Nếu ứng dụng khởi động thành công, Backend sẽ cung cấp địa chỉ truy cập HTTP/HTTPS để Client sử dụng.
+Kiểm tra Backend bằng Swagger
+Sau khi Backend khởi động, mở địa chỉ Swagger trên trình duyệt để kiểm tra danh sách API.
+Tại đây có thể kiểm tra:
+API đăng nhập. 
+API Student. 
+API Registration. 
+API Address. 
+API Landlord. 
+API Document. 
+API Request. 
+API Approval. 
+API Notification. 
+API Report. 
+Các API khác của hệ thống. 
+Swagger giúp kiểm tra Backend độc lập với Frontend, từ đó dễ xác định lỗi nằm ở API hay giao diện.
+Đăng nhập và lấy JWT
+Tiếp theo, thực hiện đăng nhập bằng tài khoản kiểm thử. Nếu username và password hợp lệ, Backend xác thực người dùng và trả về JWT.
+Token này được sử dụng để gọi các API yêu cầu xác thực. Trong Swagger, token có thể được nhập vào cơ chế Authorize để thực hiện các request được bảo vệ.
+Khởi động Frontend
+Sau khi Backend hoạt động ổn định, tiến hành khởi động Frontend. Frontend được cấu hình để gửi request đến địa chỉ Backend tương ứng.
+Frontend không kết nối trực tiếp đến SQL Server mà chỉ giao tiếp với hệ thống thông qua API. Điều này giúp tách biệt giao diện với tầng dữ liệu và bảo đảm các quy tắc nghiệp vụ được kiểm soát tại Backend.
+Đăng nhập theo từng vai trò
+Người kiểm thử có thể sử dụng các tài khoản thuộc những vai trò khác nhau để kiểm tra phạm vi chức năng:
+Sinh viên: quản lý hồ sơ ngoại trú, địa chỉ, giấy tờ, yêu cầu và thông báo. 
+Cán bộ: tiếp nhận và xử lý hồ sơ, giấy tờ và yêu cầu. 
+Reviewer: thực hiện xét duyệt theo thẩm quyền. 
+Administrator: quản lý người dùng, role, permission, cấu hình và audit. 
+Việc kiểm tra theo từng vai trò giúp xác định hệ thống có thực hiện đúng cơ chế phân quyền hay không.
+Kiểm tra quy trình nghiệp vụ
+Sau khi đăng nhập, tiến hành kiểm tra các luồng nghiệp vụ chính:
+Sinh viên tạo hồ sơ ngoại trú. 
+Sinh viên khai báo địa chỉ và thông tin chủ nhà. 
+Sinh viên bổ sung giấy tờ. 
+Sinh viên gửi hồ sơ. 
+Cán bộ tiếp nhận và kiểm tra hồ sơ. 
+Cán bộ yêu cầu bổ sung nếu cần. 
+Reviewer thực hiện xét duyệt. 
+Sinh viên theo dõi kết quả. 
+Sinh viên tạo yêu cầu thay đổi địa chỉ, gia hạn hoặc kết thúc ngoại trú. 
+Hệ thống cập nhật lịch sử, thông báo và SLA tương ứng.
+Kiểm tra dữ liệu sau khi thao tác
+Sau mỗi quy trình quan trọng, có thể kiểm tra trực tiếp SQL Server để xác nhận dữ liệu đã được lưu đúng.
+Ví dụ:
+Registration được tạo đúng Student. 
+Address được liên kết đúng Registration. 
+DocumentVersion được tạo khi sinh viên tải phiên bản mới. 
+RequestHistory ghi nhận thay đổi trạng thái. 
+Approval lưu quyết định của reviewer. 
+Notification được tạo cho đúng người nhận. 
+SLA_TRACKING cập nhật thời gian xử lý. 
+AuditLog ghi nhận các thao tác quan trọng.
+Kết thúc phiên chạy thử
+Sau khi hoàn thành kiểm thử, Backend và Frontend có thể được dừng theo quy trình của môi trường phát triển. Dữ liệu kiểm thử cần được giữ lại nếu còn phục vụ các Test Case tiếp theo hoặc được khôi phục về trạng thái ban đầu khi cần thực hiện một bộ kiểm thử mới.
+Định hướng triển khai thực tế
+HTTPS và cấu hình môi trường
+Production cần sử dụng HTTPS và tách cấu hình Development.
+Bảo mật thông tin
+Mật khẩu lưu dạng hash; secret và connection string không commit vào GitHub; quyền SQL Server tuân thủ nguyên tắc tối thiểu.
+Sao lưu và phục hồi
+Cần có kế hoạch backup định kỳ, lưu bản sao và quy trình phục hồi.
+Logging và giám sát
+Theo dõi lỗi ứng dụng, database, Scheduler và thao tác quan trọng; kết hợp log với AuditLog.
+CORS và phân quyền
+Production chỉ cho phép origin hợp lệ. Backend vẫn phải kiểm tra quyền vì giao diện không phải lớp bảo mật cuối cùng.
+CHƯƠNG 6: KIỂM THỬ VÀ ĐÁNH GIÁ
+CHƯƠNG 7: KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN
+TÀI LIỆU THAM KHẢO
+[1] Microsoft Learn, ASP.NET Core Documentation.https://learn.microsoft.com/aspnet/core/
+[2] Microsoft Learn, Entity Framework Core Documentation.https://learn.microsoft.com/ef/core/ 
+[3] Microsoft Learn, SQL Server Technical Documentation.https://learn.microsoft.com/sql/sql-server/
+[4] Microsoft Learn, C# Documentation.https://learn.microsoft.com/dotnet/csharp/
+[5] Microsoft Learn, ASP.NET Core Web API Documentation.https://learn.microsoft.com/aspnet/core/web-api/
+[6] Swagger / OpenAPI Initiative, OpenAPI Specification.https://swagger.io/specification/
+[7] OWASP Foundation, OWASP Top 10 – Web Application Security Risks.https://owasp.org/www-project-top-ten/
+[8] Git, Git Documentation.https://git-scm.com/docs/git
+[9] Microsoft, Visual Studio Documentation.https://learn.microsoft.com/visualstudio/

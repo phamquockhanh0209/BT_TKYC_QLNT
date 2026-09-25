@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("QLNT_TKYC.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+61a3efe4c96de6857bd9e1c1b1f9581ab6a982e5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fb4d5791e0153509463b1d4e346455471f8082e6")]
 [assembly: System.Reflection.AssemblyProductAttribute("QLNT_TKYC.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("QLNT_TKYC.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

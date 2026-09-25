@@ -12,7 +12,18 @@ const documentTypes = [
   ['HOUSE_IMAGE', 'Ảnh cổng và số nhà trọ']
 ];
 const dateText = value => value ? new Date(value).toLocaleDateString('vi-VN') : '—';
-const statusText = value => ({ APPROVED: 'Đã duyệt', ACTIVE: 'Đang hiệu lực', SUBMITTED: 'Chờ xét duyệt', PROCESSING: 'Đang xử lý', REJECTED: 'Từ chối' }[value] || value || '—');
+const statusText = value => ({
+  APPROVED: 'Đã duyệt',
+  ACTIVE: 'Đang hiệu lực',
+  SUBMITTED: 'Chờ xét duyệt',
+  UNDER_REVIEW: 'Đang xét duyệt',
+  NEED_MORE_INFO: 'Yêu cầu bổ sung',
+  PROCESSING: 'Đang xử lý',
+  REJECTED: 'Từ chối',
+  WITHDRAWN: 'Đã rút',
+  EXPIRED: 'Hết hạn',
+  TERMINATED: 'Đã kết thúc'
+}[value] || value || '—');
 
 export default function RegistrationPage() {
   const [student, setStudent] = useState(null);
@@ -51,6 +62,29 @@ export default function RegistrationPage() {
     if (step === 3 && documentTypes.some(([type]) => !files[type])) return 'Vui lòng chọn đủ 4 giấy tờ minh chứng.';
     return '';
   };
+
+  const handleResubmit = async registrationId => {
+    try {
+      setMessage({ type: '', text: '' });
+
+      await studentService.resubmitRegistration(registrationId);
+
+      setMessage({
+        type: 'success',
+        text: 'Nộp lại hồ sơ thành công. Hồ sơ đã được chuyển về trạng thái chờ xét duyệt.'
+      });
+
+      await loadData();
+    } catch (errorResponse) {
+      setMessage({
+        type: 'danger',
+        text:
+          errorResponse?.response?.data?.message ||
+          'Không thể nộp lại hồ sơ. Vui lòng thử lại.'
+      });
+    }
+  };
+
   const next = () => { const error = validate(); if (error) setMessage({ type: 'danger', text: error }); else { setMessage({ type: '', text: '' }); setStep(value => value + 1); } };
   const previous = () => { setMessage({ type: '', text: '' }); setStep(value => value - 1); };
   const submit = async event => {

@@ -73,6 +73,14 @@ export const studentService = {
    */
   async createRequest(data) {
     return await axiosClient.post('/Request', data);
+  },
+
+  /**
+   * Nộp lại hồ sơ sau khi được yêu cầu bổ sung
+   * @param {number|string} registrationId
+   */
+  async resubmitRegistration(registrationId) {
+    return await axiosClient.post(`/Registration/${registrationId}/resubmit`);
   }
 };
 

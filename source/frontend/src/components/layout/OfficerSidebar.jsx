@@ -121,9 +121,14 @@ export default function OfficerSidebar() {
         </div>
       </div>
 
-      {/* 4. Bản vẽ Sketch Tòa nhà ở đáy Sidebar */}
-      <div className="px-3 pb-2 pt-1 border-top bg-light" style={{ borderColor: 'var(--border-color)' }}>
-        <BuildingIllustration height="100px" />
+      {/* 4. Hình ảnh thiết kế phòng trọ ở đáy Sidebar */}
+      <div className="px-3 pb-2 pt-1 border-top bg-light text-center" style={{ borderColor: 'var(--border-color)' }}>
+        <img 
+          src="/thiet-ke-phong-tro-dep-3.jpg" 
+          alt="Thiết kế phòng trọ đẹp" 
+          className="img-fluid rounded-2 border shadow-xs" 
+          style={{ width: '100%', height: '110px', objectFit: 'cover' }} 
+        />
       </div>
 
       {/* Style riêng cho Sidebar */}

@@ -164,86 +164,86 @@ namespace QLNT_TKYC.API.Controllers
             try
             {
 
-            // 2. Tìm hoặc tạo Chủ trọ nếu có thông tin
-            Landlord? landlord = null;
-            if (!string.IsNullOrWhiteSpace(dto.LandlordPhone))
-            {
-                landlord = await _context.Landlords.FirstOrDefaultAsync(l => l.Phone == dto.LandlordPhone);
-            }
-            if (landlord == null && !string.IsNullOrWhiteSpace(dto.LandlordFullName))
-            {
-                landlord = new Landlord
+                // 2. Tìm hoặc tạo Chủ trọ nếu có thông tin
+                Landlord? landlord = null;
+                if (!string.IsNullOrWhiteSpace(dto.LandlordPhone))
                 {
-                    FullName = dto.LandlordFullName,
-                    Phone = dto.LandlordPhone ?? "0900000000",
-                    IdentityNumber = dto.LandlordIdentityNumber,
-                    Note = dto.RoomNumber != null ? $"Phòng {dto.RoomNumber}" : dto.Note,
+                    landlord = await _context.Landlords.FirstOrDefaultAsync(l => l.Phone == dto.LandlordPhone);
+                }
+                if (landlord == null && !string.IsNullOrWhiteSpace(dto.LandlordFullName))
+                {
+                    landlord = new Landlord
+                    {
+                        FullName = dto.LandlordFullName,
+                        Phone = dto.LandlordPhone ?? "0900000000",
+                        IdentityNumber = dto.LandlordIdentityNumber,
+                        Note = dto.RoomNumber != null ? $"Phòng {dto.RoomNumber}" : dto.Note,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now
+                    };
+                    _context.Landlords.Add(landlord);
+                    await _context.SaveChangesAsync();
+                }
+
+                // 3. Tạo mã hồ sơ duy nhất
+                int countToday = await _context.Registrations.CountAsync(r => r.CreatedAt.Date == DateTime.Today);
+                string regCode = $"HS-{DateTime.Now:yyyyMMdd}-{countToday + 1:D3}";
+
+                // 4. Tạo Registration (trạng thái SUBMITTED)
+                var registration = new Registration
+                {
+                    StudentId = student.StudentId,
+                    RegistrationCode = regCode,
+                    Status = "SUBMITTED",
+                    SubmittedAt = DateTime.Now,
+                    StartDate = dto.StartDate,
+                    ExpiryDate = dto.ExpiryDate,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 };
-                _context.Landlords.Add(landlord);
+                _context.Registrations.Add(registration);
                 await _context.SaveChangesAsync();
-            }
 
-            // 3. Tạo mã hồ sơ duy nhất
-            int countToday = await _context.Registrations.CountAsync(r => r.CreatedAt.Date == DateTime.Today);
-            string regCode = $"HS-{DateTime.Now:yyyyMMdd}-{countToday + 1:D3}";
+                // 5. Tạo Address
+                var address = new Address
+                {
+                    RegistrationId = registration.RegistrationId,
+                    LandlordId = landlord?.LandlordId,
+                    AddressLine = string.IsNullOrWhiteSpace(dto.RoomNumber) ? dto.AddressLine : $"{dto.AddressLine} (Phòng {dto.RoomNumber})",
+                    Ward = dto.Ward,
+                    District = dto.District,
+                    Province = string.IsNullOrWhiteSpace(dto.Province) ? "TP. Hồ Chí Minh" : dto.Province,
+                    AddressType = "TEMPORARY",
+                    StartDate = dto.StartDate,
+                    EndDate = dto.ExpiryDate,
+                    Status = "CURRENT",
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+                _context.Addresses.Add(address);
 
-            // 4. Tạo Registration (trạng thái SUBMITTED)
-            var registration = new Registration
-            {
-                StudentId = student.StudentId,
-                RegistrationCode = regCode,
-                Status = "SUBMITTED",
-                SubmittedAt = DateTime.Now,
-                StartDate = dto.StartDate,
-                ExpiryDate = dto.ExpiryDate,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
-            };
-            _context.Registrations.Add(registration);
-            await _context.SaveChangesAsync();
+                // 6. Tạo SLA Tracking 48h
+                var sla = new SlaTracking
+                {
+                    RegistrationId = registration.RegistrationId,
+                    SlaType = "REGISTRATION_REVIEW",
+                    StartedAt = DateTime.Now,
+                    DueAt = DateTime.Now.AddHours(48),
+                    Status = "IN_PROGRESS",
+                    CreatedAt = DateTime.Now
+                };
+                _context.SlaTrackings.Add(sla);
 
-            // 5. Tạo Address
-            var address = new Address
-            {
-                RegistrationId = registration.RegistrationId,
-                LandlordId = landlord?.LandlordId,
-                AddressLine = string.IsNullOrWhiteSpace(dto.RoomNumber) ? dto.AddressLine : $"{dto.AddressLine} (Phòng {dto.RoomNumber})",
-                Ward = dto.Ward,
-                District = dto.District,
-                Province = string.IsNullOrWhiteSpace(dto.Province) ? "TP. Hồ Chí Minh" : dto.Province,
-                AddressType = "TEMPORARY",
-                StartDate = dto.StartDate,
-                EndDate = dto.ExpiryDate,
-                Status = "CURRENT",
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
-            };
-            _context.Addresses.Add(address);
+                await _context.SaveChangesAsync();
 
-            // 6. Tạo SLA Tracking 48h
-            var sla = new SlaTracking
-            {
-                RegistrationId = registration.RegistrationId,
-                SlaType = "REGISTRATION_REVIEW",
-                StartedAt = DateTime.Now,
-                DueAt = DateTime.Now.AddHours(48),
-                Status = "IN_PROGRESS",
-                CreatedAt = DateTime.Now
-            };
-            _context.SlaTrackings.Add(sla);
-
-            await _context.SaveChangesAsync();
-
-            // Trả về kèm đầy đủ navigation
-            var result = await _context.Registrations
-                .AsNoTracking()
-                .Include(r => r.Student)
-                .Include(r => r.Addresses)
-                    .ThenInclude(a => a.Landlord)
-                .Include(r => r.Documents)
-                .FirstOrDefaultAsync(r => r.RegistrationId == registration.RegistrationId);
+                // Trả về kèm đầy đủ navigation
+                var result = await _context.Registrations
+                    .AsNoTracking()
+                    .Include(r => r.Student)
+                    .Include(r => r.Addresses)
+                        .ThenInclude(a => a.Landlord)
+                    .Include(r => r.Documents)
+                    .FirstOrDefaultAsync(r => r.RegistrationId == registration.RegistrationId);
 
                 await transaction.CommitAsync();
                 return Ok(result);
@@ -281,8 +281,8 @@ namespace QLNT_TKYC.API.Controllers
                 return BadRequest(new { message = "Hành động xử lý không hợp lệ. Cho phép: APPROVE, PASS, REQUEST_INFO, REJECT." });
             }
 
-            var canApprove = User.IsInRole("ADMIN") || User.IsInRole("APPROVER") || User.IsInRole("SENIOR_APPROVER");
-            var canReview = canApprove || User.IsInRole("OFFICER") || User.IsInRole("REVIEWER") || User.IsInRole("RECEIVER") || User.IsInRole("PROCESSOR");
+            var canApprove = User.IsInRole("ADMIN") || User.IsInRole("APPROVER") || User.IsInRole("SENIOR_APPROVER") || User.IsInRole("REVIEWER") || User.IsInRole("OFFICER");
+            var canReview = canApprove || User.IsInRole("RECEIVER") || User.IsInRole("PROCESSOR");
             if ((action is "APPROVE" or "REJECT") && !canApprove || (action is "PASS" or "REQUEST_INFO") && !canReview)
                 return Forbid();
 
@@ -290,7 +290,16 @@ namespace QLNT_TKYC.API.Controllers
             var currentUser = string.IsNullOrWhiteSpace(username)
                 ? null
                 : await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+            
             long? approverId = currentUser?.UserId;
+            if (!approverId.HasValue && long.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var claimUserId))
+            {
+                approverId = claimUserId;
+            }
+            if (!approverId.HasValue && dto.ApproverId.HasValue)
+            {
+                approverId = dto.ApproverId;
+            }
 
             if (!approverId.HasValue || !await _context.Users.AnyAsync(u => u.UserId == approverId.Value))
             {
@@ -307,12 +316,12 @@ namespace QLNT_TKYC.API.Controllers
 
                 if (action == "APPROVE")
                 {
-                    newStatus = "APPROVED";
+                    newStatus = "ACTIVE";
                     decision = "APPROVED";
                     registration.ApprovedAt = DateTime.Now;
                     notifTitle = "Hồ sơ ngoại trú đã được duyệt chính thức";
                     notifMessage = $"Chúc mừng! Hồ sơ {registration.RegistrationCode} của bạn đã được Cán bộ Quản lý phê duyệt chính thức. Nơi ở ngoại trú hiện đã có hiệu lực trên hệ thống.";
-                    
+
                     // Cập nhật địa chỉ sang hiệu lực
                     foreach (var addr in registration.Addresses)
                     {
@@ -414,6 +423,59 @@ namespace QLNT_TKYC.API.Controllers
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        // =====================================================
+        // POST: api/Registration/1/resubmit
+        // Sinh viên nộp lại hồ sơ sau khi được yêu cầu bổ sung
+        // =====================================================
+        [HttpPost("{id:long}/resubmit")]
+        [Authorize(Roles = "STUDENT,ADMIN")]
+        public async Task<IActionResult> ResubmitRegistration(long id)
+        {
+            var registration = await _context.Registrations
+                .FirstOrDefaultAsync(r => r.RegistrationId == id);
+
+            if (registration == null)
+            {
+                return NotFound(new
+                {
+                    message = "Không tìm thấy hồ sơ đăng ký.",
+                    registrationId = id
+                });
+            }
+
+            // Nếu là STUDENT thì chỉ được thao tác trên hồ sơ của chính mình
+            if (User.IsInRole("STUDENT"))
+            {
+                var student = await _accessControl.GetCurrentStudentAsync(User);
+
+                if (student == null || registration.StudentId != student.StudentId)
+                    return Forbid();
+            }
+
+            // Chỉ được nộp lại khi hồ sơ đang chờ bổ sung
+            if (registration.Status != "NEED_MORE_INFO")
+            {
+                return BadRequest(new
+                {
+                    message = "Chỉ hồ sơ ở trạng thái NEED_MORE_INFO mới được nộp lại.",
+                    currentStatus = registration.Status
+                });
+            }
+
+            registration.Status = "SUBMITTED";
+            registration.SubmittedAt = DateTime.Now;
+            registration.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Nộp lại hồ sơ thành công.",
+                registrationId = registration.RegistrationId,
+                status = registration.Status
+            });
         }
 
         // =====================================================
