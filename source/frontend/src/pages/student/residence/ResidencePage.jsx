@@ -28,25 +28,40 @@ export default function ResidencePage() {
 
   if (loading) return <div className="container-fluid py-5 text-center text-muted">Đang tải thông tin nơi ở...</div>;
   if (error) return <div className="container-fluid py-2"><div className="alert alert-danger">{error}</div></div>;
-  const address = registration?.addresses?.[0];
+  const address = registration?.addresses?.find(a => a.status === 'CURRENT') || registration?.addresses?.[0];
   const landlord = address?.landlord;
   const houseImageDocument = registration?.documents?.find(document =>
     document.documentType === 'HOUSE_IMAGE' &&
-    (['APPROVED', 'VALID'].includes(document.documentStatus) || registration.status === 'APPROVED')
+    (['APPROVED', 'VALID'].includes(document.documentStatus) || ['APPROVED', 'ACTIVE'].includes(registration?.status))
   );
   const houseImageVersion = houseImageDocument?.documentVersions?.[0];
   const houseImagePath = houseImageVersion?.filePath || houseImageDocument?.filePath;
   const houseImageUrl = houseImagePath
     ? (houseImagePath.startsWith('http') ? houseImagePath : `http://localhost:5005${houseImagePath.startsWith('/') ? '' : '/'}${houseImagePath}`)
     : undefined;
+
+  const canChangeAddress = ['ACTIVE', 'APPROVED'].includes(registration?.status);
+
   return (
     <div className="container-fluid py-2">
       <div className="d-flex align-items-center justify-content-between mb-4">
         <div>
-          <h2 className="fw-bold mb-1">Thông Tin Nơi Ở Hiện Tại</h2>
+          <div className="d-flex align-items-center gap-2 mb-1">
+            <h2 className="fw-bold mb-0">Thông Tin Nơi Ở Hiện Tại</h2>
+            {registration && (
+              <span className={`badge ${registration.status === 'ACTIVE' || registration.status === 'APPROVED' ? 'bg-success' : 'bg-warning text-dark'}`}>
+                {registration.status === 'ACTIVE' ? 'Đang hiệu lực' : registration.status === 'APPROVED' ? 'Đã duyệt' : registration.status}
+              </span>
+            )}
+          </div>
           <p className="text-muted mb-0">Chi tiết nhà trọ, chủ nhà và thông tin đăng ký tạm trú</p>
         </div>
-        <button className="btn btn-outline-success d-inline-flex align-items-center gap-2" onClick={() => window.location.assign('/registration')}>
+        <button 
+          className="btn btn-outline-success d-inline-flex align-items-center gap-2" 
+          onClick={() => window.location.assign('/requests?type=CHANGE_ADDRESS')}
+          disabled={!canChangeAddress}
+          title={!canChangeAddress ? 'Chỉ sinh viên có hồ sơ ngoại trú đang hiệu lực mới có thể tạo yêu cầu chuyển nơi ở.' : 'Tạo yêu cầu báo chuyển sang nơi ở mới'}
+        >
           <RefreshCw size={16} /> Báo chuyển trọ
         </button>
       </div>

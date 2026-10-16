@@ -123,5 +123,293 @@ namespace QLNT_TKYC.API.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        // =====================================================
+        // POST: api/Request/{id}/approve
+        // Officer/Approver duyệt Request → tự động tác động lên Registration
+        // - RENEWAL:        cộng thêm 1 năm vào expiry_date
+        // - CHANGE_ADDRESS: cập nhật địa chỉ mới vào Registration
+        // - TERMINATION:    chuyển Registration sang TERMINATED
+        // =====================================================
+        [HttpPost("{id:long}/approve")]
+        [Authorize(Roles = "ADMIN,OFFICER,APPROVER,SENIOR_APPROVER")]
+        public async Task<IActionResult> ApproveRequest(long id)
+        {
+            var request = await _context.Requests
+                .Include(r => r.Registration)
+                    .ThenInclude(reg => reg.Addresses)
+                .FirstOrDefaultAsync(r => r.RequestId == id);
+
+            if (request == null)
+                return NotFound(new { message = "Không tìm thấy yêu cầu.", requestId = id });
+
+            if (request.Status == "APPROVED")
+                return BadRequest(new { message = "Yêu cầu này đã được phê duyệt trước đó." });
+
+            if (request.Status == "REJECTED")
+                return BadRequest(new { message = "Yêu cầu này đã bị từ chối, không thể phê duyệt." });
+
+            if (request.Status == "CANCELLED")
+                return BadRequest(new { message = "Yêu cầu này đã bị hủy, không thể phê duyệt." });
+
+            var registration = request.Registration;
+            if (registration == null)
+                return BadRequest(new { message = "Không tìm thấy hồ sơ gắn với yêu cầu này." });
+
+            if (registration.Status != "ACTIVE" && registration.Status != "APPROVED")
+                return BadRequest(new { message = $"Hồ sơ ngoại trú hiện ở trạng thái {registration.Status}, không thể thực hiện yêu cầu này." });
+
+            var username = User.Identity?.Name;
+            var currentUser = string.IsNullOrWhiteSpace(username)
+                ? null
+                : await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+            long? approverId = currentUser?.UserId;
+            if (!approverId.HasValue && long.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var claimUserId))
+            {
+                approverId = claimUserId;
+            }
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var oldStatus = request.Status;
+
+                // 1. Cập nhật trạng thái Request
+                request.Status = "APPROVED";
+                request.ApprovedAt = DateTime.Now;
+                request.ProcessedAt = DateTime.Now;
+                request.UpdatedAt = DateTime.Now;
+                if (approverId.HasValue) request.ProcessedBy = approverId.Value;
+
+                // 2. Tác động lên Registration theo request_type
+                switch (request.RequestType?.ToUpper())
+                {
+                    case "RENEWAL":
+                        var currentExpiry = registration.ExpiryDate ?? DateOnly.FromDateTime(DateTime.Today);
+                        registration.ExpiryDate = currentExpiry.AddYears(1);
+                        registration.UpdatedAt = DateTime.Now;
+                        break;
+
+                    case "CHANGE_ADDRESS":
+                        if (!string.IsNullOrWhiteSpace(request.NewAddressLine))
+                        {
+                            // Đánh dấu địa chỉ cũ thành OLD (khớp CHECK constraint CK_ADDRESS_STATUS)
+                            foreach (var addr in registration.Addresses)
+                            {
+                                addr.Status = "OLD";
+                                addr.EndDate = DateOnly.FromDateTime(DateTime.Today);
+                                addr.UpdatedAt = DateTime.Now;
+                            }
+
+                            // Thêm địa chỉ mới
+                            var newAddress = new Address
+                            {
+                                RegistrationId = registration.RegistrationId,
+                                LandlordId = request.NewLandlordId,
+                                AddressLine = request.NewAddressLine,
+                                Ward = request.NewWard,
+                                District = request.NewDistrict,
+                                Province = string.IsNullOrWhiteSpace(request.NewCity) ? "TP. Hồ Chí Minh" : request.NewCity,
+                                AddressType = "TEMPORARY",
+                                StartDate = DateOnly.FromDateTime(DateTime.Today),
+                                Status = "CURRENT",
+                                CreatedAt = DateTime.Now,
+                                UpdatedAt = DateTime.Now
+                            };
+                            _context.Addresses.Add(newAddress);
+                        }
+                        registration.UpdatedAt = DateTime.Now;
+                        break;
+
+                    case "TERMINATION":
+                        registration.Status = "TERMINATED";
+                        registration.TerminatedAt = DateTime.Now;
+                        registration.UpdatedAt = DateTime.Now;
+
+                        foreach (var addr in registration.Addresses)
+                        {
+                            addr.Status = "INACTIVE";
+                            addr.EndDate = DateOnly.FromDateTime(DateTime.Today);
+                            addr.UpdatedAt = DateTime.Now;
+                        }
+                        break;
+                }
+
+                // 3. Ghi nhận Approval
+                if (approverId.HasValue)
+                {
+                    var approval = new Approval
+                    {
+                        RequestId = request.RequestId,
+                        ApproverId = approverId.Value,
+                        ApprovalType = "REQUEST",
+                        Decision = "APPROVED",
+                        Reason = $"Phê duyệt yêu cầu {request.RequestType}.",
+                        DecidedAt = DateTime.Now
+                    };
+                    _context.Approvals.Add(approval);
+                }
+
+                // 4. Ghi nhận RequestHistory
+                var history = new RequestHistory
+                {
+                    RequestId = request.RequestId,
+                    OldStatus = oldStatus,
+                    NewStatus = "APPROVED",
+                    ChangedBy = approverId,
+                    Reason = "Cán bộ phê duyệt yêu cầu.",
+                    Note = request.Reason,
+                    ChangedAt = DateTime.Now
+                };
+                _context.RequestHistories.Add(history);
+
+                // 5. Gửi thông báo cho người tạo yêu cầu
+                var studentUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == request.CreatedBy);
+                if (studentUser != null)
+                {
+                    _context.Notifications.Add(new Notification
+                    {
+                        UserId = studentUser.UserId,
+                        RequestId = request.RequestId,
+                        NotificationType = "SUCCESS",
+                        Title = $"Yêu cầu {request.RequestCode ?? request.RequestType} đã được phê duyệt",
+                        Message = $"Yêu cầu {request.RequestType} của bạn đã được phê duyệt thành công vào lúc {DateTime.Now:HH:mm dd/MM/yyyy}.",
+                        IsRead = false,
+                        CreatedAt = DateTime.Now
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return Ok(new
+                {
+                    message = $"Đã duyệt yêu cầu {request.RequestType} thành công.",
+                    requestId = request.RequestId,
+                    requestStatus = request.Status,
+                    registrationId = registration.RegistrationId,
+                    registrationStatus = registration.Status,
+                    newExpiryDate = registration.ExpiryDate
+                });
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        // =====================================================
+        // POST: api/Request/{id}/reject
+        // Officer/Approver từ chối Request
+        // =====================================================
+        [HttpPost("{id:long}/reject")]
+        [Authorize(Roles = "ADMIN,OFFICER,APPROVER,SENIOR_APPROVER")]
+        public async Task<IActionResult> RejectRequest(long id, [FromBody] RejectRequestDto dto)
+        {
+            var request = await _context.Requests
+                .Include(r => r.Registration)
+                .FirstOrDefaultAsync(r => r.RequestId == id);
+
+            if (request == null)
+                return NotFound(new { message = "Không tìm thấy yêu cầu.", requestId = id });
+
+            if (request.Status == "REJECTED")
+                return BadRequest(new { message = "Yêu cầu này đã bị từ chối rồi." });
+
+            if (request.Status == "APPROVED")
+                return BadRequest(new { message = "Yêu cầu này đã được phê duyệt, không thể từ chối." });
+
+            var username = User.Identity?.Name;
+            var currentUser = string.IsNullOrWhiteSpace(username)
+                ? null
+                : await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+            long? approverId = currentUser?.UserId;
+            if (!approverId.HasValue && long.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var claimUserId))
+            {
+                approverId = claimUserId;
+            }
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var oldStatus = request.Status;
+                var reason = dto?.Reason ?? "Không đủ điều kiện.";
+
+                request.Status = "REJECTED";
+                request.RejectedAt = DateTime.Now;
+                request.RejectionReason = reason;
+                request.ProcessedAt = DateTime.Now;
+                request.UpdatedAt = DateTime.Now;
+                if (approverId.HasValue) request.ProcessedBy = approverId.Value;
+
+                // Ghi nhận Approval
+                if (approverId.HasValue)
+                {
+                    var approval = new Approval
+                    {
+                        RequestId = request.RequestId,
+                        ApproverId = approverId.Value,
+                        ApprovalType = "REQUEST",
+                        Decision = "REJECTED",
+                        Reason = reason,
+                        DecidedAt = DateTime.Now
+                    };
+                    _context.Approvals.Add(approval);
+                }
+
+                // Ghi nhận RequestHistory
+                var history = new RequestHistory
+                {
+                    RequestId = request.RequestId,
+                    OldStatus = oldStatus,
+                    NewStatus = "REJECTED",
+                    ChangedBy = approverId,
+                    Reason = reason,
+                    Note = dto?.Reason,
+                    ChangedAt = DateTime.Now
+                };
+                _context.RequestHistories.Add(history);
+
+                // Gửi thông báo cho người tạo yêu cầu
+                var studentUser = await _context.Users.FirstOrDefaultAsync(u => u.UserId == request.CreatedBy);
+                if (studentUser != null)
+                {
+                    _context.Notifications.Add(new Notification
+                    {
+                        UserId = studentUser.UserId,
+                        RequestId = request.RequestId,
+                        NotificationType = "WARNING",
+                        Title = $"Yêu cầu {request.RequestCode ?? request.RequestType} bị từ chối",
+                        Message = $"Yêu cầu {request.RequestType} của bạn đã bị từ chối. Lý do: {reason}",
+                        IsRead = false,
+                        CreatedAt = DateTime.Now
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return Ok(new
+                {
+                    message = "Đã từ chối yêu cầu.",
+                    requestId = request.RequestId,
+                    requestStatus = request.Status
+                });
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+    }
+
+    // DTO cho reject request
+    public class RejectRequestDto
+    {
+        public string? Reason { get; set; }
     }
 }

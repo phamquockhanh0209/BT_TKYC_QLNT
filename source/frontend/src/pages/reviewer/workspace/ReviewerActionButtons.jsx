@@ -1,23 +1,25 @@
 import React from 'react';
 import { CheckCircle2, AlertCircle, XCircle, MessageSquare } from 'lucide-react';
 
-export default function ReviewerActionButtons({ onApprove, onRequestInfo, onReject, onAddNote }) {
+export default function ReviewerActionButtons({ onApprove, onRequestInfo, onReject, onAddNote, onPass }) {
+  const handlePass = onPass || onApprove;
   return (
     <div className="app-card-clean p-3">
       {/* Tiêu đề mục */}
       <div className="text-uppercase fw-bold text-muted fs-8 mb-3" style={{ letterSpacing: '0.04em' }}>
-        HÀNH ĐỘNG
+        HÀNH ĐỘNG THẨM ĐỊNH
       </div>
 
       <div className="d-flex flex-column gap-2">
-        {/* Nút 1: Phê duyệt hồ sơ */}
+        {/* Nút 1: Thẩm định đạt (Chuyển duyệt) */}
         <button
           type="button"
-          onClick={onApprove}
+          onClick={handlePass}
           className="btn text-white fw-bold py-2 d-flex align-items-center justify-content-center gap-2 shadow-xs"
           style={{ backgroundColor: 'var(--primary-color)', fontSize: '0.88rem' }}
+          title="Xác nhận hồ sơ hợp lệ và chuyển lên Cán bộ quản lý phê duyệt chính thức"
         >
-          <CheckCircle2 size={18} /> Phê duyệt hồ sơ
+          <CheckCircle2 size={18} /> Thẩm định đạt (Chuyển duyệt)
         </button>
 
         {/* Nút 2: Yêu cầu bổ sung */}

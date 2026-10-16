@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace QLNT_TKYC.API.Models;
@@ -17,7 +17,7 @@ public partial class Request
 
     public string RequestType { get; set; } = null!;
 
-    public string Status { get; set; } = null!;
+    public string? Status { get; set; }
 
     public string? Reason { get; set; }
 
@@ -31,6 +31,13 @@ public partial class Request
 
     public string? RejectionReason { get; set; }
 
+    // FIX: Cột địa chỉ mới cho CHANGE_ADDRESS request (thêm bởi 07-fix-constraints.sql)
+    public string? NewAddressLine { get; set; }
+    public string? NewWard { get; set; }
+    public string? NewDistrict { get; set; }
+    public string? NewCity { get; set; }
+    public long? NewLandlordId { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
@@ -43,7 +50,7 @@ public partial class Request
 
     public virtual User? ProcessedByNavigation { get; set; }
 
-    public virtual Registration Registration { get; set; } = null!;
+    public virtual Registration? Registration { get; set; }
 
     public virtual ICollection<RequestHistory> RequestHistories { get; set; } = new List<RequestHistory>();
 

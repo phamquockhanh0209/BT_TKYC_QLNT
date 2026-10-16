@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using QLNT_TKYC.API.Models;
@@ -524,6 +524,21 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValueSql("(getdate())", "DF_REQUEST_UPDATED_AT")
                 .HasColumnType("datetime")
                 .HasColumnName("updated_at");
+
+            entity.Property(e => e.NewAddressLine)
+                .HasMaxLength(500)
+                .HasColumnName("new_address_line");
+            entity.Property(e => e.NewWard)
+                .HasMaxLength(100)
+                .HasColumnName("new_ward");
+            entity.Property(e => e.NewDistrict)
+                .HasMaxLength(100)
+                .HasColumnName("new_district");
+            entity.Property(e => e.NewCity)
+                .HasMaxLength(100)
+                .HasColumnName("new_city");
+            entity.Property(e => e.NewLandlordId)
+                .HasColumnName("new_landlord_id");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.RequestCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)

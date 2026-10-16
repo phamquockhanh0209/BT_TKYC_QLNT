@@ -75,13 +75,22 @@ export const officerService = {
     return await axiosClient.get('/Request');
   },
 
-  /**
-   * Cập nhật / xử lý một yêu cầu
-   * @param {number|string} id
-   * @param {Object} data
-   */
   async updateRequest(id, data) {
     return await axiosClient.put(`/Request/${id}`, data);
+  },
+
+  /**
+   * Duyệt yêu cầu (RENEWAL, CHANGE_ADDRESS, TERMINATION)
+   */
+  async approveRequest(id) {
+    return await axiosClient.post(`/Request/${id}/approve`);
+  },
+
+  /**
+   * Từ chối yêu cầu
+   */
+  async rejectRequest(id, reason) {
+    return await axiosClient.post(`/Request/${id}/reject`, { reason });
   },
 
   /**

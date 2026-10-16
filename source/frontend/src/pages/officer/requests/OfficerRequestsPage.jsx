@@ -5,8 +5,10 @@ import authService from '../../../api/authService';
 
 const TYPE_MAP = {
   RENEW: { label: 'Gia hạn thời hạn thuê', color: '#2563eb', bg: '#eff6ff' },
+  RENEWAL: { label: 'Gia hạn thời hạn thuê', color: '#2563eb', bg: '#eff6ff' },
   CHANGE_ADDRESS: { label: 'Thay đổi nơi ở', color: '#7c3aed', bg: '#f5f3ff' },
   TERMINATE: { label: 'Chấm dứt tạm trú', color: '#dc2626', bg: '#fef2f2' },
+  TERMINATION: { label: 'Chấm dứt tạm trú', color: '#dc2626', bg: '#fef2f2' },
   COMPLAINT: { label: 'Khiếu nại / Góp ý', color: '#d97706', bg: '#fffbeb' },
 };
 
@@ -45,18 +47,11 @@ export default function OfficerRequestsPage() {
     if (!actionModal.item) return;
 
     try {
-      const user = authService.getCurrentUser();
-      const updatedData = {
-        ...actionModal.item,
-        status: actionModal.action === 'APPROVE' ? 'APPROVED' : 'REJECTED',
-        processedBy: user?.userId,
-        processedAt: new Date().toISOString(),
-        approvedAt: actionModal.action === 'APPROVE' ? new Date().toISOString() : null,
-        rejectedAt: actionModal.action === 'REJECT' ? new Date().toISOString() : null,
-        rejectionReason: actionModal.action === 'REJECT' ? actionModal.note : null
-      };
-
-      await officerService.updateRequest(actionModal.item.requestId, updatedData);
+      if (actionModal.action === 'APPROVE') {
+        await officerService.approveRequest(actionModal.item.requestId);
+      } else if (actionModal.action === 'REJECT') {
+        await officerService.rejectRequest(actionModal.item.requestId, actionModal.note);
+      }
       setActionModal({ open: false, item: null, action: '', note: '' });
       await loadData();
     } catch (err) {

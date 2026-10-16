@@ -316,7 +316,9 @@ CREATE TABLE REGISTRATION
                 'UNDER_REVIEW',
                 'NEED_MORE_INFO',
                 'APPROVED',
+                'ACTIVE',       -- FIX: đã thêm — trạng thái hồ sơ đang hoạt động
                 'REJECTED',
+                'WITHDRAWN',    -- FIX: đã thêm — sinh viên rút hồ sơ
                 'EXPIRED',
                 'TERMINATED'
             )
@@ -647,9 +649,9 @@ CREATE TABLE REQUEST
         (
             request_type IN
             (
-                'RENEW',
+                'RENEWAL',        -- FIX: đổi từ 'RENEW' — khớp với RegistrationConstants.cs
                 'CHANGE_ADDRESS',
-                'TERMINATE'
+                'TERMINATION'     -- FIX: đổi từ 'TERMINATE' — khớp với RegistrationConstants.cs
             )
         ),
 

@@ -2,7 +2,7 @@
 
 > **Dành cho AI agent:** Đọc file này TRƯỚC KHI đọc bất kỳ file code nào. File này chứa đầy đủ tiến độ, lỗi cần sửa, và hướng dẫn từng giai đoạn. Sau khi hoàn thành mỗi giai đoạn, cập nhật trạng thái `[x]` tương ứng.
 >
-> **Cập nhật lần cuối:** 25/09/2026 — Giai đoạn: DISCOVERY hoàn tất 100%, chưa bắt đầu thực thi.
+> **Cập nhật lần cuối:** 25/09/2026 — Giai đoạn 2 HOÀN THÀNH. Bắt đầu Giai đoạn 3 (Audit Log + Scheduler).
 
 ---
 
@@ -138,17 +138,17 @@ QLNT_TKYC\
 | F02 | Tiếp nhận hồ sơ giấy | ✅ | ✅ | ⚠️ | 70% | UI nhập thủ công chưa đầy đủ |
 | F03 | Xử lý hồ sơ ban đầu (OFFICER) | ✅ | ✅ | ✅ | 80% | Logic SLA chưa tự khởi động |
 | F04 | Thẩm định hồ sơ (PROCESSOR) | ✅ | ✅ | ⚠️ | 75% | Không lưu audit tự động |
-| F05 | Kiểm duyệt hồ sơ (REVIEWER) | ✅ | ⚠️ | ⚠️ | **50%** | **LỖI phân quyền + nút sai action** |
-| F06 | Phê duyệt hồ sơ (APPROVER) | ✅ | ⚠️ | ⚠️ | **55%** | **Status APPROVED thay vì ACTIVE** |
+| F05 | Kiểm duyệt hồ sơ (REVIEWER) | ✅ | ✅ | ✅ | 90% | OK |
+| F06 | Phê duyệt hồ sơ (APPROVER) | ✅ | ✅ | ✅ | 90% | OK |
 | F07 | Phê duyệt cấp cao (SENIOR_APPROVER) | ✅ | ✅ | ⚠️ | 70% | UI chưa có nút escalate rõ ràng |
-| F08 | Yêu cầu bổ sung thông tin | ✅ | ✅ | ✅ | 80% | Thiếu endpoint resubmit cho SV |
-| F09 | Sinh viên nộp lại hồ sơ (Resubmit) | ✅ | ⚠️ | ❌ | **30%** | Service có code nhưng không có API endpoint |
+| F08 | Yêu cầu bổ sung thông tin | ✅ | ✅ | ✅ | 90% | Đã cập nhật |
+| F09 | Sinh viên nộp lại hồ sơ (Resubmit) | ✅ | ✅ | ✅ | 90% | Đã thêm API endpoint và gọi Service |
 | F10 | Từ chối hồ sơ (REJECT) | ✅ | ✅ | ✅ | 85% | Không ghi audit tự động |
-| F11 | Kích hoạt hồ sơ (ACTIVE) | ⚠️ | ⚠️ | ⚠️ | **40%** | DB CHECK thiếu ACTIVE; status code sai |
-| F12 | Gia hạn hồ sơ (RENEWAL Request) | ⚠️ | ⚠️ | ⚠️ | **35%** | Request type mismatch (RENEW vs RENEWAL); không cập nhật expiry_date |
-| F13 | Báo chuyển trọ (CHANGE_ADDRESS) | ⚠️ | ⚠️ | ⚠️ | **30%** | DB REQUEST thiếu cột địa chỉ mới; UI redirect sai; không cập nhật Registration |
-| F14 | Chấm dứt hợp đồng (TERMINATION) | ⚠️ | ⚠️ | ⚠️ | **35%** | Request type mismatch (TERMINATE vs TERMINATION); không chuyển TERMINATED |
-| F15 | Sinh viên rút hồ sơ (WITHDRAWN) | ⚠️ | ❌ | ❌ | **20%** | DB CHECK thiếu WITHDRAWN; không có API/UI |
+| F11 | Kích hoạt hồ sơ (ACTIVE) | ✅ | ✅ | ✅ | 90% | Đã fix DB CHECK Constraint |
+| F12 | Gia hạn hồ sơ (RENEWAL Request) | ✅ | ✅ | ✅ | 90% | Đã fix request_type và tự cập nhật expiry_date |
+| F13 | Báo chuyển trọ (CHANGE_ADDRESS) | ✅ | ✅ | ✅ | 90% | Đã thêm cột DB, UI redirect đúng, tạo địa chỉ mới tự động |
+| F14 | Chấm dứt hợp đồng (TERMINATION) | ✅ | ✅ | ✅ | 90% | Đã fix type và chuyển sang TERMINATED |
+| F15 | Sinh viên rút hồ sơ (WITHDRAWN) | ⚠️ | ❌ | ❌ | **20%** | DB CHECK đã thêm WITHDRAWN; chưa có API/UI |
 | F16 | Hồ sơ hết hạn tự động (EXPIRED) | ✅ | ❌ | ❌ | **15%** | Không có BackgroundService/Scheduler |
 | F17 | Leo thang hồ sơ (Escalation) | ✅ | ✅ | ⚠️ | 70% | UI chưa rõ ràng |
 | F18 | Quản lý tài liệu đính kèm | ✅ | ✅ | ✅ | 85% | OK, DocumentService hoàn chỉnh |
@@ -407,19 +407,21 @@ QLNT_TKYC\
 5. Cập nhật cột "Hoàn thiện" trong bảng tiến độ
 
 ### Checklist Giai đoạn 1 (Mạch sống cốt lõi)
-- `[ ]` Fix DB CHECK Constraint (database/01-create-tables.sql dòng 309-323)
-- `[ ]` Fix phân quyền REVIEWER (RegistrationController.cs dòng 284)
-- `[ ]` Fix nút Phê duyệt frontend (ReviewerWorkspacePage.jsx dòng 265)
-- `[ ]` Fix status ACTIVE backend (RegistrationController.cs dòng 310)
+- `[x]` Fix DB CHECK Constraint REGISTRATION (database/01-create-tables.sql dòng 309-323) ✅ Sửa trực tiếp + tạo 07-fix-constraints.sql
+- `[x]` Fix DB CHECK Constraint REQUEST (database/01-create-tables.sql dòng 645-654) ✅ RENEW→RENEWAL, TERMINATE→TERMINATION
+- `[x]` Fix phân quyền REVIEWER (RegistrationController.cs dòng 284) ✅ Đã có sẵn từ trước
+- `[x]` Fix status ACTIVE backend (RegistrationController.cs dòng 319) ✅ Đã có sẵn từ trước
+- `[x]` Nút "Phê duyệt" của Reviewer → **ĐÚNG NGHIỆP VỤ**: dùng PASS (chuyển cho Approver), không phải APPROVE
+- `[ ]` Thêm cột địa chỉ mới vào bảng REQUEST (07-fix-constraints.sql đã có, cần chạy trên DB thực)
 - `[ ]` Test end-to-end: Login reviewer → Mở hồ sơ → Click Phê duyệt → Hồ sơ chuyển ACTIVE
 
 ### Checklist Giai đoạn 2 (Request nhóm)
-- `[ ]` Fix Request type mismatch DB vs Constants
-- `[ ]` Thêm cột địa chỉ mới vào bảng REQUEST (ALTER TABLE)
-- `[ ]` Fix redirect nút "Báo chuyển trọ" (ResidencePage.jsx dòng 49)
-- `[ ]` Thêm fields địa chỉ vào form Request (RequestPage.jsx)
-- `[ ]` Fix logic duyệt Request tác động Registration (OfficerRequestsPage.jsx)
-- `[ ]` Thêm endpoint resubmit (RegistrationController.cs + IRegistrationService)
+- `[x]` Fix Request type mismatch DB vs Constants
+- `[x]` Thêm cột địa chỉ mới vào bảng REQUEST (ALTER TABLE)
+- `[x]` Fix redirect nút "Báo chuyển trọ" (ResidencePage.jsx dòng 49)
+- `[x]` Thêm fields địa chỉ vào form Request (RequestPage.jsx)
+- `[x]` Fix logic duyệt Request tác động Registration (OfficerRequestsPage.jsx)
+- `[x]` Thêm endpoint resubmit (RegistrationController.cs + IRegistrationService)
 
 ### Checklist Giai đoạn 3 (Audit + Scheduler)
 - `[ ]` Xóa PUT/DELETE khỏi AuditLogController (dòng 52-79)

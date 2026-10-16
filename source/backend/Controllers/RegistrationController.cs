@@ -15,11 +15,13 @@ namespace QLNT_TKYC.API.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IAccessControlService _accessControl;
+        private readonly IRegistrationService _registrationService;
 
-        public RegistrationController(AppDbContext context, IAccessControlService accessControl)
+        public RegistrationController(AppDbContext context, IAccessControlService accessControl, IRegistrationService registrationService)
         {
             _context = context;
             _accessControl = accessControl;
+            _registrationService = registrationService;
         }
 
         // =====================================================
@@ -163,6 +165,45 @@ namespace QLNT_TKYC.API.Controllers
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                // 1. Kiểm tra ràng buộc nghiệp vụ: Không cho phép tạo nhiều hồ sơ ngoại trú
+                // Nếu sinh viên đã có hồ sơ ACTIVE, PENDING (SUBMITTED, UNDER_REVIEW), hoặc NEED_MORE_INFO
+                var existingRegs = await _context.Registrations
+                    .Where(r => r.StudentId == student.StudentId)
+                    .Select(r => new { r.RegistrationId, r.RegistrationCode, r.Status })
+                    .ToListAsync();
+
+                var activeReg = existingRegs.FirstOrDefault(r => r.Status == "ACTIVE" || r.Status == "APPROVED");
+                if (activeReg != null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Bạn đã có hồ sơ ngoại trú đang hoạt động trên hệ thống. Nếu có thay đổi nơi ở, vui lòng tạo 'Yêu cầu chuyển nơi ở' thay vì tạo hồ sơ mới.",
+                        registrationCode = activeReg.RegistrationCode,
+                        status = activeReg.Status
+                    });
+                }
+
+                var pendingReg = existingRegs.FirstOrDefault(r => r.Status == "SUBMITTED" || r.Status == "UNDER_REVIEW" || r.Status == "PROCESSING");
+                if (pendingReg != null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Bạn đang có hồ sơ ngoại trú đang trong quá trình xét duyệt. Vui lòng chờ kết quả xử lý từ cán bộ nhà trường.",
+                        registrationCode = pendingReg.RegistrationCode,
+                        status = pendingReg.Status
+                    });
+                }
+
+                var needInfoReg = existingRegs.FirstOrDefault(r => r.Status == "NEED_MORE_INFO");
+                if (needInfoReg != null)
+                {
+                    return BadRequest(new
+                    {
+                        message = "Hồ sơ ngoại trú của bạn đang ở trạng thái cần bổ sung thông tin (NEED_MORE_INFO). Vui lòng cập nhật và nộp lại hồ sơ đó thay vì tạo hồ sơ mới.",
+                        registrationCode = needInfoReg.RegistrationCode,
+                        status = needInfoReg.Status
+                    });
+                }
 
                 // 2. Tìm hoặc tạo Chủ trọ nếu có thông tin
                 Landlord? landlord = null;
@@ -433,49 +474,36 @@ namespace QLNT_TKYC.API.Controllers
         [Authorize(Roles = "STUDENT,ADMIN")]
         public async Task<IActionResult> ResubmitRegistration(long id)
         {
-            var registration = await _context.Registrations
-                .FirstOrDefaultAsync(r => r.RegistrationId == id);
-
-            if (registration == null)
+            try
             {
-                return NotFound(new
+                var registration = await _context.Registrations
+                    .FirstOrDefaultAsync(r => r.RegistrationId == id);
+
+                if (registration == null)
                 {
-                    message = "Không tìm thấy hồ sơ đăng ký.",
-                    registrationId = id
+                    return NotFound(new { message = "Không tìm thấy hồ sơ đăng ký.", registrationId = id });
+                }
+
+                if (User.IsInRole("STUDENT"))
+                {
+                    var student = await _accessControl.GetCurrentStudentAsync(User);
+                    if (student == null || registration.StudentId != student.StudentId)
+                        return Forbid();
+                }
+
+                var updatedReg = await _registrationService.ResubmitRegistrationAsync(id);
+
+                return Ok(new
+                {
+                    message = "Nộp lại hồ sơ thành công.",
+                    registrationId = updatedReg.RegistrationId,
+                    status = updatedReg.Status
                 });
             }
-
-            // Nếu là STUDENT thì chỉ được thao tác trên hồ sơ của chính mình
-            if (User.IsInRole("STUDENT"))
+            catch (InvalidOperationException ex)
             {
-                var student = await _accessControl.GetCurrentStudentAsync(User);
-
-                if (student == null || registration.StudentId != student.StudentId)
-                    return Forbid();
+                return BadRequest(new { message = ex.Message });
             }
-
-            // Chỉ được nộp lại khi hồ sơ đang chờ bổ sung
-            if (registration.Status != "NEED_MORE_INFO")
-            {
-                return BadRequest(new
-                {
-                    message = "Chỉ hồ sơ ở trạng thái NEED_MORE_INFO mới được nộp lại.",
-                    currentStatus = registration.Status
-                });
-            }
-
-            registration.Status = "SUBMITTED";
-            registration.SubmittedAt = DateTime.Now;
-            registration.UpdatedAt = DateTime.Now;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                message = "Nộp lại hồ sơ thành công.",
-                registrationId = registration.RegistrationId,
-                status = registration.Status
-            });
         }
 
         // =====================================================

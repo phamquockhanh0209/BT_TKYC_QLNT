@@ -1,16 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Clock, CheckCircle, AlertTriangle, FileText, Send, X, RefreshCw } from 'lucide-react';
+import { Plus, Clock, CheckCircle, AlertTriangle, FileText, Send, X, RefreshCw, MapPin } from 'lucide-react';
 import authService from '../../../api/authService';
 import studentService from '../../../api/studentService';
 
 const STATUS_CONFIG = {
-  SUBMITTED:  { label: 'CHỜ XÁC NHẬN', badgeClass: 'badge-pending', icon: <Clock size={13} /> },
-  UNDER_REVIEW: { label: 'ĐANG XÉT DUYỆT', badgeClass: 'badge-pending', icon: <Clock size={13} /> },
-  PROCESSING: { label: 'ĐANG XỬ LÝ', badgeClass: 'badge-pending', icon: <Clock size={13} /> },
-  APPROVED:   { label: 'ĐÃ DUYỆT', badgeClass: 'badge-active', icon: <CheckCircle size={13} /> },
-  ACTIVE:     { label: 'HOẠT ĐỘNG', badgeClass: 'badge-active', icon: <CheckCircle size={13} /> },
-  REJECTED:   { label: 'BỊ TỪ CHỐI', badgeClass: 'badge-rejected', icon: <AlertTriangle size={13} /> },
-  DRAFT:      { label: 'BẢN NHÁP', badgeClass: 'badge-draft', icon: <FileText size={13} /> },
+  SUBMITTED:    { label: 'CHỜ XÁC NHẬN',   badgeClass: 'badge-pending',  icon: <Clock size={13} /> },
+  UNDER_REVIEW: { label: 'ĐANG XÉT DUYỆT', badgeClass: 'badge-pending',  icon: <Clock size={13} /> },
+  PROCESSING:   { label: 'ĐANG XỬ LÝ',     badgeClass: 'badge-pending',  icon: <Clock size={13} /> },
+  APPROVED:     { label: 'ĐÃ DUYỆT',        badgeClass: 'badge-active',   icon: <CheckCircle size={13} /> },
+  ACTIVE:       { label: 'HOẠT ĐỘNG',       badgeClass: 'badge-active',   icon: <CheckCircle size={13} /> },
+  REJECTED:     { label: 'BỊ TỪ CHỐI',      badgeClass: 'badge-rejected', icon: <AlertTriangle size={13} /> },
+  DRAFT:        { label: 'BẢN NHÁP',        badgeClass: 'badge-draft',    icon: <FileText size={13} /> },
+};
+
+// FIX: Đồng bộ với DB CHECK constraint và backend Constants
+const REQUEST_TYPE_OPTIONS = [
+  { value: 'RENEWAL',        label: 'Gia hạn thời gian thuê trọ' },
+  { value: 'CHANGE_ADDRESS', label: 'Thay đổi nơi ở ngoại trú' },
+  { value: 'TERMINATION',    label: 'Chấm dứt hợp đồng tạm trú' },
+];
+
+// Label hiển thị trong bảng
+const TYPE_LABELS = {
+  RENEWAL:        'Gia hạn thời gian thuê trọ',
+  CHANGE_ADDRESS: 'Thay đổi nơi ở ngoại trú',
+  TERMINATION:    'Chấm dứt hợp đồng tạm trú',
+  // Giữ lại label cũ cho dữ liệu lịch sử đã có trong DB
+  RENEW:          'Gia hạn thời gian thuê trọ',
+  TERMINATE:      'Chấm dứt hợp đồng tạm trú',
 };
 
 export default function RequestPage() {
@@ -22,9 +39,27 @@ export default function RequestPage() {
   const [submitting, setSubmitting] = useState(false);
 
   // Form state
-  const [requestType, setRequestType] = useState('RENEW');
+  const [requestType, setRequestType] = useState('RENEWAL'); // FIX: default RENEWAL thay vì RENEW
   const [reason, setReason] = useState('');
   const [formMsg, setFormMsg] = useState({ type: '', text: '' });
+
+  // FIX: Thêm state cho địa chỉ mới (dành cho CHANGE_ADDRESS)
+  const [newAddressLine, setNewAddressLine] = useState('');
+  const [newWard, setNewWard] = useState('');
+  const [newDistrict, setNewDistrict] = useState('');
+  const [newCity, setNewCity] = useState('');
+
+  // Đọc query param ?type=CHANGE_ADDRESS từ URL (khi redirect từ ResidencePage)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const typeParam = params.get('type');
+    if (typeParam && REQUEST_TYPE_OPTIONS.some(o => o.value === typeParam)) {
+      setRequestType(typeParam);
+      setShowModal(true);
+      // Xóa query param khỏi URL mà không reload
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   const loadData = async () => {
     try {
@@ -76,16 +111,10 @@ export default function RequestPage() {
           const subRequests = await studentService.getRequestsByRegistration(reg.registrationId);
           if (Array.isArray(subRequests)) {
             for (const req of subRequests) {
-              const typeLabels = {
-                RENEW: 'Gia hạn thời gian thuê trọ',
-                CHANGE_ADDRESS: 'Thay đổi nơi ở ngoại trú',
-                TERMINATE: 'Chấm dứt tạm trú',
-                COMPLAINT: 'Khiếu nại / Góp ý'
-              };
               compiledItems.push({
                 id: `req-${req.requestId}`,
                 code: req.requestCode || `YC-${req.requestId}`,
-                type: typeLabels[req.requestType] || req.requestType,
+                type: TYPE_LABELS[req.requestType] || req.requestType,
                 content: req.reason || 'Yêu cầu xử lý hồ sơ',
                 date: req.submittedAt || req.createdAt,
                 status: req.status,
@@ -121,10 +150,27 @@ export default function RequestPage() {
     item => ['SUBMITTED', 'PROCESSING', 'UNDER_REVIEW'].includes(item.status)
   ).length;
 
+  // Reset form khi đóng modal
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setReason('');
+    setNewAddressLine('');
+    setNewWard('');
+    setNewDistrict('');
+    setNewCity('');
+    setFormMsg({ type: '', text: '' });
+    setRequestType('RENEWAL');
+  };
+
   const handleCreateRequest = async (e) => {
     e.preventDefault();
     if (!reason.trim()) {
       setFormMsg({ type: 'danger', text: 'Vui lòng nhập lý do/nội dung chi tiết.' });
+      return;
+    }
+    // FIX: Validate địa chỉ mới khi loại CHANGE_ADDRESS
+    if (requestType === 'CHANGE_ADDRESS' && !newAddressLine.trim()) {
+      setFormMsg({ type: 'danger', text: 'Vui lòng nhập địa chỉ mới khi báo chuyển trọ.' });
       return;
     }
     if (!activeReg) {
@@ -138,21 +184,26 @@ export default function RequestPage() {
       const currentUser = authService.getCurrentUser();
       const code = `YC-${Date.now().toString().slice(-6)}`;
 
+      // FIX: Gửi đúng requestType (RENEWAL/TERMINATION/CHANGE_ADDRESS)
+      // và thêm các trường địa chỉ mới nếu là CHANGE_ADDRESS
       await studentService.createRequest({
         registrationId: activeReg.registrationId,
         createdBy: currentUser?.userId,
         requestCode: code,
-        requestType: requestType,
+        requestType: requestType,          // FIX: RENEWAL / CHANGE_ADDRESS / TERMINATION
         status: 'SUBMITTED',
         reason: reason.trim(),
-        submittedAt: new Date().toISOString()
+        submittedAt: new Date().toISOString(),
+        // FIX: Thêm trường địa chỉ mới (chỉ có giá trị khi CHANGE_ADDRESS)
+        newAddressLine: requestType === 'CHANGE_ADDRESS' ? newAddressLine.trim() : null,
+        newWard:        requestType === 'CHANGE_ADDRESS' ? newWard.trim()        : null,
+        newDistrict:    requestType === 'CHANGE_ADDRESS' ? newDistrict.trim()    : null,
+        newCity:        requestType === 'CHANGE_ADDRESS' ? newCity.trim()        : null,
       });
 
       setFormMsg({ type: 'success', text: 'Gửi yêu cầu thành công!' });
       setTimeout(() => {
-        setShowModal(false);
-        setReason('');
-        setFormMsg({ type: '', text: '' });
+        handleCloseModal();
         loadData();
       }, 1000);
     } catch (err) {
@@ -170,7 +221,7 @@ export default function RequestPage() {
       <div className="d-flex align-items-center justify-content-between mb-4">
         <div>
           <h2 className="fw-bold mb-1">
-            Yêu Cầu & Khiếu Nại {pendingCount > 0 && <span className="text-warning fs-5">({pendingCount} đang xử lý)</span>}
+            Yêu Cầu &amp; Khiếu Nại {pendingCount > 0 && <span className="text-warning fs-5">({pendingCount} đang xử lý)</span>}
           </h2>
           <p className="text-muted mb-0">Theo dõi hồ sơ đăng ký ngoại trú và các yêu cầu gửi tới cán bộ nhà trường</p>
         </div>
@@ -249,11 +300,11 @@ export default function RequestPage() {
       {/* Modal gửi yêu cầu mới */}
       {showModal && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} tabIndex="-1">
-          <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title fw-bold">Gửi Yêu Cầu Mới</h5>
-                <button type="button" className="btn-close" onClick={() => setShowModal(false)}></button>
+                <button type="button" className="btn-close" onClick={handleCloseModal}></button>
               </div>
               <form onSubmit={handleCreateRequest}>
                 <div className="modal-body">
@@ -286,19 +337,82 @@ export default function RequestPage() {
                       value={requestType}
                       onChange={(e) => setRequestType(e.target.value)}
                     >
-                      <option value="RENEW">Gia hạn thời gian thuê trọ</option>
-                      <option value="CHANGE_ADDRESS">Thay đổi nơi ở ngoại trú</option>
-                      <option value="TERMINATE">Chấm dứt hợp đồng tạm trú</option>
-                      <option value="COMPLAINT">Khiếu nại / Góp ý về phòng trọ</option>
+                      {REQUEST_TYPE_OPTIONS.map(opt => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
                     </select>
                   </div>
 
+                  {/* FIX: Hiển thị form địa chỉ mới chỉ khi loại CHANGE_ADDRESS */}
+                  {requestType === 'CHANGE_ADDRESS' && (
+                    <div className="mb-3 p-3 rounded" style={{ backgroundColor: '#f0f9f4', border: '1px solid #c3e6cb' }}>
+                      <div className="d-flex align-items-center gap-2 mb-3">
+                        <MapPin size={16} className="text-success" />
+                        <span className="fw-semibold text-success">Địa chỉ nơi ở mới</span>
+                        <span className="text-danger">*</span>
+                      </div>
+                      <div className="row g-2">
+                        <div className="col-12">
+                          <label className="form-label fw-semibold fs-7">Số nhà / Tên đường <span className="text-danger">*</span></label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="VD: 123 Nguyễn Văn Linh"
+                            value={newAddressLine}
+                            onChange={(e) => setNewAddressLine(e.target.value)}
+                            required={requestType === 'CHANGE_ADDRESS'}
+                          />
+                        </div>
+                        <div className="col-md-4">
+                          <label className="form-label fw-semibold fs-7">Phường / Xã</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="VD: Phường Tân Phú"
+                            value={newWard}
+                            onChange={(e) => setNewWard(e.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-4">
+                          <label className="form-label fw-semibold fs-7">Quận / Huyện</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="VD: Quận 9"
+                            value={newDistrict}
+                            onChange={(e) => setNewDistrict(e.target.value)}
+                          />
+                        </div>
+                        <div className="col-md-4">
+                          <label className="form-label fw-semibold fs-7">Tỉnh / Thành phố</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="VD: TP. Hồ Chí Minh"
+                            value={newCity}
+                            onChange={(e) => setNewCity(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="mb-3">
-                    <label className="form-label fw-semibold">Lý do / Nội dung chi tiết</label>
+                    <label className="form-label fw-semibold">
+                      {requestType === 'CHANGE_ADDRESS' ? 'Lý do chuyển trọ' : 'Lý do / Nội dung chi tiết'}
+                    </label>
                     <textarea
                       className="form-control"
-                      rows="4"
-                      placeholder="Mô tả chi tiết lý do và mong muốn gửi tới cán bộ xét duyệt..."
+                      rows="3"
+                      placeholder={
+                        requestType === 'RENEWAL'
+                          ? 'Mô tả lý do gia hạn, thời gian thuê trọ mới...'
+                          : requestType === 'CHANGE_ADDRESS'
+                          ? 'Mô tả lý do chuyển sang nơi ở mới...'
+                          : requestType === 'TERMINATION'
+                          ? 'Mô tả lý do chấm dứt tạm trú ngoại trú...'
+                          : 'Mô tả chi tiết lý do và mong muốn gửi tới cán bộ xét duyệt...'
+                      }
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
                       required
@@ -306,7 +420,7 @@ export default function RequestPage() {
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-light" onClick={() => setShowModal(false)}>
+                  <button type="button" className="btn btn-light" onClick={handleCloseModal}>
                     Hủy bỏ
                   </button>
                   <button
@@ -326,4 +440,3 @@ export default function RequestPage() {
     </div>
   );
 }
-
