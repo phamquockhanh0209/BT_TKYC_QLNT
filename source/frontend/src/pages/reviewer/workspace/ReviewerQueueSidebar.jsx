@@ -2,14 +2,15 @@ import React from 'react';
 import { Search, SlidersHorizontal, ChevronRight, Clock, AlertCircle } from 'lucide-react';
 
 const STATUS_BADGE = {
-  SUBMITTED:    { label: 'CHỜ DUYỆT', bg: '#fef3c7', color: '#b45309' },
-  UNDER_REVIEW: { label: 'ĐANG XÉT DUYỆT', bg: '#e0e7ff', color: '#3730a3' },
-  PROCESSING:   { label: 'ĐANG XỬ LÝ', bg: '#e0e7ff', color: '#3730a3' },
-  APPROVED:     { label: 'ĐÃ DUYỆT', bg: '#dcfce7', color: '#15803d' },
-  ACTIVE:       { label: 'HIỆU LỰC', bg: '#dcfce7', color: '#15803d' },
-  REJECTED:     { label: 'BỔ SUNG/TỪ CHỐI', bg: '#fee2e2', color: '#b91c1c' },
-  OVERDUE:      { label: 'QUÁ HẠN SLA', bg: '#ffedd5', color: '#c2410c' },
-  DRAFT:        { label: 'BẢN NHÁP', bg: '#f1f5f9', color: '#475569' },
+  SUBMITTED:      { label: 'CHỜ DUYỆT', bg: '#fef3c7', color: '#b45309' },
+  UNDER_REVIEW:   { label: 'ĐANG XÉT DUYỆT', bg: '#e0e7ff', color: '#3730a3' },
+  NEED_MORE_INFO: { label: 'CẦN BỔ SUNG', bg: '#fef3c7', color: '#b45309' },
+  PROCESSING:     { label: 'ĐANG XỬ LÝ', bg: '#e0e7ff', color: '#3730a3' },
+  APPROVED:       { label: 'ĐÃ DUYỆT', bg: '#dcfce7', color: '#15803d' },
+  ACTIVE:         { label: 'HIỆU LỰC', bg: '#dcfce7', color: '#15803d' },
+  REJECTED:       { label: 'TỪ CHỐI', bg: '#fee2e2', color: '#b91c1c' },
+  OVERDUE:        { label: 'QUÁ HẠN SLA', bg: '#ffedd5', color: '#c2410c' },
+  DRAFT:          { label: 'BẢN NHÁP', bg: '#f1f5f9', color: '#475569' },
 };
 
 export default function ReviewerQueueSidebar({
@@ -39,7 +40,9 @@ export default function ReviewerQueueSidebar({
   const filterTabs = [
     { key: 'SUBMITTED', label: 'Chờ duyệt' },
     { key: 'UNDER_REVIEW', label: 'Đang xử lý' },
-    { key: 'REJECTED', label: 'Bổ sung' },
+    { key: 'NEED_MORE_INFO', label: 'Cần bổ sung' },
+    { key: 'ACTIVE', label: 'Hiệu lực' },
+    { key: 'REJECTED', label: 'Từ chối' },
     { key: 'OVERDUE', label: 'Quá hạn' },
     { key: 'ALL', label: 'Tất cả' },
   ];

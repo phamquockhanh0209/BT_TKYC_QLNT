@@ -43,12 +43,7 @@ export default function ReviewerRequestsPage() {
     if (!window.confirm(`Xác nhận phê duyệt yêu cầu "${req.requestCode || req.requestId}"?`)) return;
     setActionLoading(true);
     try {
-      await reviewerService.updateRequest(req.requestId, {
-        ...req,
-        status: 'APPROVED',
-        approvedAt: new Date().toISOString(),
-        processedBy: 3 // reviewer01
-      });
+      await reviewerService.approveRequest(req.requestId);
       showToast("Đã phê duyệt yêu cầu thành công!");
       loadRequests();
     } catch (err) {
@@ -68,13 +63,7 @@ export default function ReviewerRequestsPage() {
     if (!rejectModalReq) return;
     setActionLoading(true);
     try {
-      await reviewerService.updateRequest(rejectModalReq.requestId, {
-        ...rejectModalReq,
-        status: 'REJECTED',
-        rejectedAt: new Date().toISOString(),
-        rejectionReason: rejectionReason || 'Không đáp ứng điều kiện quy định',
-        processedBy: 3
-      });
+      await reviewerService.rejectRequest(rejectModalReq.requestId, rejectionReason || 'Không đáp ứng điều kiện quy định');
       showToast("Đã từ chối yêu cầu!");
       setRejectModalReq(null);
       loadRequests();

@@ -81,6 +81,22 @@ export const studentService = {
    */
   async resubmitRegistration(registrationId) {
     return await axiosClient.post(`/Registration/${registrationId}/resubmit`);
+  },
+
+  /**
+   * Sinh viên chủ động rút hồ sơ ngoại trú (chỉ áp dụng cho DRAFT, SUBMITTED, NEED_MORE_INFO)
+   * @param {number|string} registrationId
+   */
+  async withdrawRegistration(registrationId) {
+    return await axiosClient.post(`/Registration/${registrationId}/withdraw`);
+  },
+
+  /**
+   * Sinh viên chủ động hủy yêu cầu (chỉ áp dụng cho DRAFT, SUBMITTED)
+   * @param {number|string} requestId
+   */
+  async cancelRequest(requestId) {
+    return await axiosClient.post(`/Request/${requestId}/cancel`);
   }
 };
 

@@ -40,9 +40,12 @@ export default function ReviewerSidebar() {
         let reqCount = 0;
 
         if (queueRes.status === 'fulfilled' && Array.isArray(queueRes.value)) {
-          pending = queueRes.value.filter(r => r.status === 'PENDING_REVIEW' || r.status === 'SUBMITTED').length;
-          additional = queueRes.value.filter(r => r.status === 'REQUEST_INFO').length;
-          overdue = queueRes.value.filter(r => (r.status === 'PENDING_REVIEW' || r.status === 'SUBMITTED') && r.slaTracking?.isBreached).length;
+          pending = queueRes.value.filter(r => r.status === 'PENDING_REVIEW' || r.status === 'SUBMITTED' || r.status === 'UNDER_REVIEW').length;
+          additional = queueRes.value.filter(r => r.status === 'NEED_MORE_INFO').length;
+          overdue = queueRes.value.filter(r => 
+            r.slaTrackings?.some(s => s.dueAt && new Date(s.dueAt) < new Date() && s.status !== 'COMPLETED') ||
+            r.slaTracking?.isBreached
+          ).length;
         }
 
         if (reqRes.status === 'fulfilled' && Array.isArray(reqRes.value)) {

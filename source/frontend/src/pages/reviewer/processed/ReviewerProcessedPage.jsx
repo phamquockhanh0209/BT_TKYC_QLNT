@@ -39,7 +39,8 @@ export default function ReviewerProcessedPage() {
       studentCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
       faculty.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchDecision = !filterDecision || r.status === filterDecision;
+    const matchDecision = !filterDecision || 
+      (filterDecision === 'APPROVED' ? (r.status === 'APPROVED' || r.status === 'ACTIVE') : r.status === filterDecision);
 
     return matchSearch && matchDecision;
   });
@@ -90,8 +91,8 @@ export default function ReviewerProcessedPage() {
           </div>
           <div className="col-md-4">
             <select className="form-select form-select-sm" value={filterDecision} onChange={e => setFilterDecision(e.target.value)}>
-              <option value="">Tất cả quyết định (Đã duyệt & Từ chối)</option>
-              <option value="APPROVED">ĐÃ PHÊ DUYỆT (APPROVED)</option>
+              <option value="">Tất cả quyết định (Hiệu lực, Đã duyệt & Từ chối)</option>
+              <option value="APPROVED">ĐÃ PHÊ DUYỆT (ACTIVE / APPROVED)</option>
               <option value="REJECTED">ĐÃ TỪ CHỐI (REJECTED)</option>
             </select>
           </div>
@@ -133,9 +134,11 @@ export default function ReviewerProcessedPage() {
                   const sName = r.student?.fullName || '—';
                   const sCode = r.student?.studentCode || '—';
                   const sClass = r.student?.className || '—';
-                  const addr = r.address ? `${r.address.streetAddress || ''}, ${r.address.ward || ''}, ${r.address.district || ''}` : 'Chưa có địa chỉ';
+                  const addressObj = r.addresses?.[0] || r.address || {};
+                  const addrParts = [addressObj.addressLine || addressObj.streetAddress, addressObj.ward, addressObj.district, addressObj.province || addressObj.city].filter(Boolean);
+                  const addr = addrParts.length > 0 ? addrParts.join(', ') : 'Chưa có địa chỉ';
                   const processedDate = r.approvedAt ? new Date(r.approvedAt).toLocaleDateString('vi-VN') : (r.updatedAt ? new Date(r.updatedAt).toLocaleDateString('vi-VN') : '—');
-                  const isApproved = r.status === 'APPROVED';
+                  const isApproved = r.status === 'APPROVED' || r.status === 'ACTIVE';
 
                   return (
                     <tr key={r.registrationId} className="border-bottom border-light">
@@ -150,8 +153,10 @@ export default function ReviewerProcessedPage() {
                       <td>
                         {isApproved ? (
                           <span className="badge bg-success text-white fs-8">ĐÃ PHÊ DUYỆT</span>
-                        ) : (
+                        ) : r.status === 'REJECTED' ? (
                           <span className="badge bg-danger text-white fs-8">ĐÃ TỪ CHỐI</span>
+                        ) : (
+                          <span className="badge bg-secondary text-white fs-8">{r.status}</span>
                         )}
                       </td>
                       <td className="text-end">
@@ -193,22 +198,29 @@ export default function ReviewerProcessedPage() {
                   </div>
                   <div className="col-md-6">
                     <h6 className="fw-bold text-muted fs-8 text-uppercase">Địa chỉ ngoại trú</h6>
-                    <div className="p-3 bg-light rounded-2">
-                      <div><strong>Địa chỉ:</strong> {selectedReg.address?.streetAddress || '—'}</div>
-                      <div><strong>Phường / Xã:</strong> {selectedReg.address?.ward || '—'}</div>
-                      <div><strong>Quận / Huyện:</strong> {selectedReg.address?.district || '—'}</div>
-                      <div><strong>Tỉnh / Thành phố:</strong> {selectedReg.address?.province || '—'}</div>
-                    </div>
+                    {(() => {
+                      const modalAddr = selectedReg.addresses?.[0] || selectedReg.address || {};
+                      return (
+                        <div className="p-3 bg-light rounded-2">
+                          <div><strong>Địa chỉ:</strong> {modalAddr.addressLine || modalAddr.streetAddress || '—'}</div>
+                          <div><strong>Phường / Xã:</strong> {modalAddr.ward || '—'}</div>
+                          <div><strong>Quận / Huyện:</strong> {modalAddr.district || '—'}</div>
+                          <div><strong>Tỉnh / Thành phố:</strong> {modalAddr.province || modalAddr.city || '—'}</div>
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="col-12">
                     <h6 className="fw-bold text-muted fs-8 text-uppercase">Kết quả thẩm định bởi Reviewer</h6>
                     <div className="p-3 border rounded-2 d-flex flex-column gap-2 bg-light">
                       <div className="d-flex align-items-center gap-2">
                         <span className="fw-semibold text-dark">Quyết định chính thức:</span>
-                        {selectedReg.status === 'APPROVED' ? (
-                          <span className="badge bg-success text-white fs-7">ĐÃ PHÊ DUYỆT (APPROVED)</span>
-                        ) : (
+                        {selectedReg.status === 'APPROVED' || selectedReg.status === 'ACTIVE' ? (
+                          <span className="badge bg-success text-white fs-7">ĐÃ PHÊ DUYỆT (ACTIVE)</span>
+                        ) : selectedReg.status === 'REJECTED' ? (
                           <span className="badge bg-danger text-white fs-7">ĐÃ TỪ CHỐI (REJECTED)</span>
+                        ) : (
+                          <span className="badge bg-secondary text-white fs-7">{selectedReg.status}</span>
                         )}
                       </div>
                       <div className="text-muted fs-8">

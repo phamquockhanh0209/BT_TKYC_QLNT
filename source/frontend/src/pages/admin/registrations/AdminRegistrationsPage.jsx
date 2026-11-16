@@ -177,39 +177,44 @@ export default function AdminRegistrationsPage() {
                 <button type="button" className="btn-close" onClick={() => setSelectedReg(null)} />
               </div>
               <div className="modal-body">
-                <div className="row g-3">
-                  <div className="col-md-6">
-                    <h6 className="fw-bold text-muted fs-8 text-uppercase">Thông tin sinh viên</h6>
-                    <div className="p-3 bg-light rounded-2">
-                      <div><strong>Họ tên:</strong> {selectedReg.student?.fullName}</div>
-                      <div><strong>MSSV:</strong> {selectedReg.student?.studentCode}</div>
-                      <div><strong>Khoa:</strong> {selectedReg.student?.faculty}</div>
-                      <div><strong>Lớp:</strong> {selectedReg.student?.className}</div>
-                      <div><strong>Số điện thoại:</strong> {selectedReg.student?.phone || '—'}</div>
-                    </div>
-                  </div>
-                  <div className="col-md-6">
-                    <h6 className="fw-bold text-muted fs-8 text-uppercase">Địa chỉ cư trú</h6>
-                    <div className="p-3 bg-light rounded-2">
-                      <div><strong>Số nhà / Tên đường:</strong> {selectedReg.address?.streetAddress || '—'}</div>
-                      <div><strong>Phường / Xã:</strong> {selectedReg.address?.ward || '—'}</div>
-                      <div><strong>Quận / Huyện:</strong> {selectedReg.address?.district || '—'}</div>
-                      <div><strong>Tỉnh / Thành phố:</strong> {selectedReg.address?.province || '—'}</div>
-                    </div>
-                  </div>
-                  <div className="col-12">
-                    <h6 className="fw-bold text-muted fs-8 text-uppercase">Trạng thái xét duyệt</h6>
-                    <div className="p-3 border rounded-2 d-flex justify-content-between align-items-center">
-                      <div className="d-flex align-items-center gap-2">
-                        <span>Trạng thái hiện tại:</span>
-                        <span className="badge bg-dark text-white fs-7">{selectedReg.status}</span>
+                {(() => {
+                  const addr = selectedReg.addresses?.[0] || selectedReg.address || {};
+                  return (
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <h6 className="fw-bold text-muted fs-8 text-uppercase">Thông tin sinh viên</h6>
+                        <div className="p-3 bg-light rounded-2">
+                          <div><strong>Họ tên:</strong> {selectedReg.student?.fullName || '—'}</div>
+                          <div><strong>MSSV:</strong> {selectedReg.student?.studentCode || '—'}</div>
+                          <div><strong>Khoa:</strong> {selectedReg.student?.faculty || '—'}</div>
+                          <div><strong>Lớp:</strong> {selectedReg.student?.className || '—'}</div>
+                          <div><strong>Số điện thoại:</strong> {selectedReg.student?.phone || '—'}</div>
+                        </div>
                       </div>
-                      <div className="text-muted fs-8">
-                        Ngày tạo: {selectedReg.createdAt ? new Date(selectedReg.createdAt).toLocaleString('vi-VN') : '—'}
+                      <div className="col-md-6">
+                        <h6 className="fw-bold text-muted fs-8 text-uppercase">Địa chỉ cư trú</h6>
+                        <div className="p-3 bg-light rounded-2">
+                          <div><strong>Số nhà / Tên đường:</strong> {addr.addressLine || addr.streetAddress || '—'}</div>
+                          <div><strong>Phường / Xã:</strong> {addr.ward || '—'}</div>
+                          <div><strong>Quận / Huyện:</strong> {addr.district || '—'}</div>
+                          <div><strong>Tỉnh / Thành phố:</strong> {addr.province || addr.city || '—'}</div>
+                        </div>
+                      </div>
+                      <div className="col-12">
+                        <h6 className="fw-bold text-muted fs-8 text-uppercase">Trạng thái xét duyệt</h6>
+                        <div className="p-3 border rounded-2 d-flex justify-content-between align-items-center">
+                          <div className="d-flex align-items-center gap-2">
+                            <span>Trạng thái hiện tại:</span>
+                            <span className="badge bg-dark text-white fs-7">{selectedReg.status}</span>
+                          </div>
+                          <div className="text-muted fs-8">
+                            Ngày tạo: {selectedReg.createdAt ? new Date(selectedReg.createdAt).toLocaleString('vi-VN') : '—'}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  );
+                })()}
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-sm btn-secondary" onClick={() => setSelectedReg(null)}>Đóng</button>

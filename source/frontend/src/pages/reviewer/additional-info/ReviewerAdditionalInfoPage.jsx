@@ -11,9 +11,9 @@ export default function ReviewerAdditionalInfoPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const res = await reviewerService.getReviewQueue({ status: 'REQUEST_INFO' });
+      const res = await reviewerService.getReviewQueue({ status: 'NEED_MORE_INFO' });
       if (Array.isArray(res)) {
-        setRegistrations(res.filter(r => r.status === 'REQUEST_INFO'));
+        setRegistrations(res.filter(r => r.status === 'NEED_MORE_INFO'));
       }
     } catch (err) {
       console.error("Failed to load request-info registrations:", err);
@@ -154,10 +154,14 @@ export default function ReviewerAdditionalInfoPage() {
               </div>
               <div className="modal-body d-flex flex-column gap-3">
                 <div className="p-3 bg-light rounded-2">
-                  <div><strong>Sinh viên:</strong> {selectedReg.student?.fullName}</div>
-                  <div><strong>MSSV:</strong> {selectedReg.student?.studentCode}</div>
-                  <div><strong>Khoa:</strong> {selectedReg.student?.faculty}</div>
-                  <div><strong>Địa chỉ:</strong> {selectedReg.address?.streetAddress}, {selectedReg.address?.district}</div>
+                  <div><strong>Sinh viên:</strong> {selectedReg.student?.fullName || '—'}</div>
+                  <div><strong>MSSV:</strong> {selectedReg.student?.studentCode || '—'}</div>
+                  <div><strong>Khoa:</strong> {selectedReg.student?.faculty || '—'}</div>
+                  {(() => {
+                    const addrObj = selectedReg.addresses?.[0] || selectedReg.address || {};
+                    const addrStr = [addrObj.addressLine || addrObj.streetAddress, addrObj.ward, addrObj.district, addrObj.province || addrObj.city].filter(Boolean).join(', ');
+                    return <div><strong>Địa chỉ:</strong> {addrStr || 'Chưa có địa chỉ'}</div>;
+                  })()}
                 </div>
                 <div className="p-3 border rounded-2 bg-white">
                   <div className="fw-semibold text-dark mb-1">Trạng thái hồ sơ:</div>

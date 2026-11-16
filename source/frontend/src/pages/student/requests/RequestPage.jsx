@@ -98,6 +98,7 @@ export default function RequestPage() {
 
         compiledItems.push({
           id: `reg-${reg.registrationId}`,
+          numericId: reg.registrationId,
           code: reg.registrationCode || `HS-${reg.registrationId}`,
           type: 'Đăng ký ngoại trú mới',
           content: `Khai báo nơi ở ngoại trú: ${addrText}`,
@@ -113,6 +114,7 @@ export default function RequestPage() {
             for (const req of subRequests) {
               compiledItems.push({
                 id: `req-${req.requestId}`,
+                numericId: req.requestId,
                 code: req.requestCode || `YC-${req.requestId}`,
                 type: TYPE_LABELS[req.requestType] || req.requestType,
                 content: req.reason || 'Yêu cầu xử lý hồ sơ',
@@ -216,6 +218,38 @@ export default function RequestPage() {
     }
   };
 
+  const handleCancelRequest = async (requestId, requestCode) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn hủy yêu cầu [${requestCode}] không?`)) {
+      return;
+    }
+    try {
+      setLoading(true);
+      await studentService.cancelRequest(requestId);
+      alert('Đã hủy yêu cầu thành công!');
+      await loadData();
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Không thể hủy yêu cầu. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleWithdrawRegistration = async (registrationId, regCode) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn rút hồ sơ [${regCode}] không?`)) {
+      return;
+    }
+    try {
+      setLoading(true);
+      await studentService.withdrawRegistration(registrationId);
+      alert('Đã rút hồ sơ thành công!');
+      await loadData();
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Không thể rút hồ sơ. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="container-fluid py-2">
       <div className="d-flex align-items-center justify-content-between mb-4">
@@ -264,6 +298,7 @@ export default function RequestPage() {
                   <th>NỘI DUNG</th>
                   <th>NGÀY GỬI</th>
                   <th>TRẠNG THÁI</th>
+                  <th className="text-end">HÀNH ĐỘNG</th>
                 </tr>
               </thead>
               <tbody>
@@ -287,6 +322,26 @@ export default function RequestPage() {
                         <span className={`badge-pill-custom ${cfg.badgeClass} d-inline-flex align-items-center gap-1`}>
                           {cfg.icon} {cfg.label}
                         </span>
+                      </td>
+                      <td className="text-end">
+                        {!item.isRegistration && ['SUBMITTED', 'DRAFT'].includes(item.status) && (
+                          <button
+                            className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1"
+                            onClick={() => handleCancelRequest(item.numericId, item.code)}
+                            title="Hủy yêu cầu đang chờ"
+                          >
+                            <X size={13} /> Hủy yêu cầu
+                          </button>
+                        )}
+                        {item.isRegistration && ['SUBMITTED', 'DRAFT', 'NEED_MORE_INFO'].includes(item.status) && (
+                          <button
+                            className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1"
+                            onClick={() => handleWithdrawRegistration(item.numericId, item.code)}
+                            title="Rút hồ sơ chưa duyệt"
+                          >
+                            <X size={13} /> Rút hồ sơ
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );

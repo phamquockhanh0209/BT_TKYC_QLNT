@@ -58,12 +58,12 @@ export const reviewerService = {
   },
 
   /**
-   * Lấy danh sách hồ sơ đã xử lý (APPROVED hoặc REJECTED)
+   * Lấy danh sách hồ sơ đã xử lý (ACTIVE, APPROVED hoặc REJECTED)
    */
   async getProcessedRegistrations(params = {}) {
     const res = await axiosClient.get('/Registration');
     if (Array.isArray(res)) {
-      return res.filter(r => r.status === 'APPROVED' || r.status === 'REJECTED');
+      return res.filter(r => r.status === 'ACTIVE' || r.status === 'APPROVED' || r.status === 'REJECTED');
     }
     return [];
   },
@@ -73,6 +73,20 @@ export const reviewerService = {
    */
   async getRequests(params = {}) {
     return await axiosClient.get('/Request');
+  },
+
+  /**
+   * Phê duyệt yêu cầu kiến nghị (RENEWAL / CHANGE_ADDRESS / TERMINATION)
+   */
+  async approveRequest(id) {
+    return await axiosClient.post(`/Request/${id}/approve`);
+  },
+
+  /**
+   * Từ chối yêu cầu kiến nghị
+   */
+  async rejectRequest(id, reason) {
+    return await axiosClient.post(`/Request/${id}/reject`, { reason });
   },
 
   /**

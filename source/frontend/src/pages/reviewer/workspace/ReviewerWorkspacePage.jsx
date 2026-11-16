@@ -109,12 +109,14 @@ export default function ReviewerWorkspacePage() {
   const openActionModal = (type) => {
     if (!selectedReg) return;
     const titles = {
+      APPROVE: 'Phê duyệt chính thức hồ sơ (Kích hoạt ACTIVE)',
       PASS: 'Xác nhận hồ sơ hợp lệ (Chuyển tiếp duyệt)',
       REQUEST_INFO: 'Yêu cầu sinh viên bổ sung giấy tờ',
       REJECT: 'Từ chối hồ sơ ngoại trú',
       NOTE: 'Thêm ghi chú nội bộ'
     };
     const defaultNotes = {
+      APPROVE: 'Hồ sơ đạt yêu cầu quy định, phê duyệt chính thức.',
       PASS: 'Hồ sơ và tài liệu minh chứng hợp lệ, chuyển cán bộ quản lý phê duyệt.',
       REQUEST_INFO: '',
       REJECT: '',
@@ -149,7 +151,8 @@ export default function ReviewerWorkspacePage() {
       });
 
       const successMsgs = {
-        PASS: `Đã thẩm định hồ sơ ${selectedReg.registrationCode || `#${selectedReg.registrationId}`} đạt yêu cầu!`,
+        APPROVE: `Đã phê duyệt chính thức hồ sơ ${selectedReg.registrationCode || `#${selectedReg.registrationId}`} sang trạng thái ACTIVE!`,
+        PASS: `Đã thẩm định hồ sơ ${selectedReg.registrationCode || `#${selectedReg.registrationId}`} đạt yêu cầu (chuyển UNDER_REVIEW)!`,
         REQUEST_INFO: `Đã gửi yêu cầu bổ sung giấy tờ cho sinh viên.`,
         REJECT: `Đã từ chối hồ sơ ${selectedReg.registrationCode || `#${selectedReg.registrationId}`}.`
       };
@@ -262,7 +265,8 @@ export default function ReviewerWorkspacePage() {
 
           {/* 3. Khối Nút Hành Động Quyết Định */}
           <ReviewerActionButtons 
-            onApprove={() => openActionModal('PASS')}
+            onApprove={() => openActionModal('APPROVE')}
+            onPass={() => openActionModal('PASS')}
             onRequestInfo={() => openActionModal('REQUEST_INFO')}
             onReject={() => openActionModal('REJECT')}
             onAddNote={() => openActionModal('NOTE')}
@@ -277,7 +281,7 @@ export default function ReviewerWorkspacePage() {
             <div className="modal-content">
               <div className="modal-header py-3">
                 <h6 className="modal-title fw-bold d-flex align-items-center gap-2">
-                  {actionModal.type === 'PASS' && <CheckCircle2 size={18} className="text-success" />}
+                  {(actionModal.type === 'APPROVE' || actionModal.type === 'PASS') && <CheckCircle2 size={18} className="text-success" />}
                   {actionModal.type === 'REQUEST_INFO' && <AlertCircle size={18} className="text-warning" />}
                   {actionModal.type === 'REJECT' && <XCircle size={18} className="text-danger" />}
                   {actionModal.title}
@@ -298,13 +302,15 @@ export default function ReviewerWorkspacePage() {
 
                   <div className="mb-3">
                     <label className="form-label fw-semibold fs-7">
-                      {actionModal.type === 'PASS' ? 'Ghi chú thẩm định' : 'Lý do / Nội dung chi tiết'} <span className="text-danger">*</span>
+                      {actionModal.type === 'APPROVE' || actionModal.type === 'PASS' ? 'Ghi chú thẩm định' : 'Lý do / Nội dung chi tiết'} <span className="text-danger">*</span>
                     </label>
                     <textarea
                       className="form-control fs-7"
                       rows="4"
                       placeholder={
-                        actionModal.type === 'PASS'
+                        actionModal.type === 'APPROVE'
+                          ? 'Nhập ghi chú phê duyệt (mặc định: Hồ sơ đạt yêu cầu, phê duyệt chính thức)...'
+                          : actionModal.type === 'PASS'
                           ? 'Nhập ghi chú thẩm định (mặc định: Đầy đủ hồ sơ, hợp lệ)...'
                           : actionModal.type === 'REQUEST_INFO'
                           ? 'Mô tả rõ loại giấy tờ sinh viên cần bổ sung hoặc chụp lại (VD: Ảnh CCCD bị mờ, thiếu CT07)...'
@@ -312,7 +318,7 @@ export default function ReviewerWorkspacePage() {
                       }
                       value={actionModal.note}
                       onChange={(e) => setActionModal({ ...actionModal, note: e.target.value })}
-                      required={actionModal.type !== 'PASS'}
+                      required={actionModal.type !== 'PASS' && actionModal.type !== 'APPROVE'}
                     />
                   </div>
                 </div>
@@ -328,9 +334,9 @@ export default function ReviewerWorkspacePage() {
                   <button
                     type="submit"
                     className={`btn btn-sm text-white d-inline-flex align-items-center gap-1 ${
-                      actionModal.type === 'PASS' ? 'btn-success' : actionModal.type === 'REQUEST_INFO' ? 'btn-warning' : 'btn-danger'
+                      actionModal.type === 'APPROVE' || actionModal.type === 'PASS' ? 'btn-success' : actionModal.type === 'REQUEST_INFO' ? 'btn-warning' : 'btn-danger'
                     }`}
-                    style={actionModal.type === 'PASS' ? { backgroundColor: 'var(--primary-color)' } : undefined}
+                    style={actionModal.type === 'APPROVE' || actionModal.type === 'PASS' ? { backgroundColor: 'var(--primary-color)' } : undefined}
                     disabled={submitting}
                   >
                     <Send size={14} /> {submitting ? 'Đang lưu...' : 'Xác nhận'}
