@@ -23,6 +23,7 @@ export default function ProcessRegistrationModal({
   show, 
   onHide, 
   registration, 
+  onPass,
   onApprove, 
   onRequestInfo, 
   onReject,
@@ -54,7 +55,7 @@ export default function ProcessRegistrationModal({
       <Modal show={show} onHide={onHide} centered size="lg">
         <Modal.Header closeButton className="border-bottom">
           <Modal.Title className="fw-bold fs-5">
-            Xử lý & Phê duyệt cấp trường: <span style={{ color: 'var(--primary-color)' }}>{registration.registrationCode || `#${registration.registrationId}`}</span>
+            Tiếp nhận & Sơ duyệt hồ sơ: <span style={{ color: 'var(--primary-color)' }}>{registration.registrationCode || `#${registration.registrationId}`}</span>
           </Modal.Title>
         </Modal.Header>
 
@@ -175,16 +176,17 @@ export default function ProcessRegistrationModal({
               <AlertCircle size={16} /> Yêu cầu bổ sung
             </Button>
             <Button 
-              variant="success" 
+              variant="primary" 
               size="sm"
               style={{ backgroundColor: 'var(--primary-color)', borderColor: 'var(--primary-color)' }}
-              className="d-inline-flex align-items-center gap-1 fw-bold"
+              className="d-inline-flex align-items-center gap-1 fw-bold text-white"
               disabled={submitting}
               onClick={() => {
-                onApprove && onApprove(registration, note.trim() || 'Hồ sơ đạt yêu cầu quy định, phê duyệt chính thức.');
+                const forwardFn = onPass || onApprove;
+                forwardFn && forwardFn(registration, note.trim() || 'Hồ sơ sơ duyệt đầy đủ giấy tờ, chuyển chuyên viên thẩm định.');
               }}
             >
-              <CheckCircle2 size={16} /> {submitting ? 'Đang duyệt...' : 'Phê duyệt cấp trường'}
+              <CheckCircle2 size={16} /> {submitting ? 'Đang chuyển...' : 'Tiếp nhận & Chuyển thẩm định'}
             </Button>
           </div>
         </Modal.Footer>

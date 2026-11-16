@@ -16,12 +16,18 @@ namespace QLNT_TKYC.API.Controllers
         private readonly AppDbContext _context;
         private readonly IAccessControlService _accessControl;
         private readonly IRegistrationService _registrationService;
+        private readonly IAuditLogService _auditLog;
 
-        public RegistrationController(AppDbContext context, IAccessControlService accessControl, IRegistrationService registrationService)
+        public RegistrationController(
+            AppDbContext context,
+            IAccessControlService accessControl,
+            IRegistrationService registrationService,
+            IAuditLogService auditLog)
         {
             _context = context;
             _accessControl = accessControl;
             _registrationService = registrationService;
+            _auditLog = auditLog;
         }
 
         // =====================================================
@@ -286,6 +292,18 @@ namespace QLNT_TKYC.API.Controllers
                     .Include(r => r.Documents)
                     .FirstOrDefaultAsync(r => r.RegistrationId == registration.RegistrationId);
 
+                // Ghi nhận AuditLog
+                await _auditLog.LogAsync(
+                    userId: null,
+                    action: "SUBMIT_REGISTRATION",
+                    entityType: "REGISTRATION",
+                    entityId: registration.RegistrationId,
+                    oldValue: null,
+                    newValue: "SUBMITTED",
+                    reason: "Sinh viên nộp hồ sơ ngoại trú mới",
+                    source: "STUDENT_PORTAL"
+                );
+
                 await transaction.CommitAsync();
                 return Ok(result);
             }
@@ -322,8 +340,8 @@ namespace QLNT_TKYC.API.Controllers
                 return BadRequest(new { message = "Hành động xử lý không hợp lệ. Cho phép: APPROVE, PASS, REQUEST_INFO, REJECT." });
             }
 
-            var canApprove = User.IsInRole("ADMIN") || User.IsInRole("APPROVER") || User.IsInRole("SENIOR_APPROVER") || User.IsInRole("REVIEWER") || User.IsInRole("OFFICER");
-            var canReview = canApprove || User.IsInRole("RECEIVER") || User.IsInRole("PROCESSOR");
+            var canApprove = User.IsInRole("ADMIN") || User.IsInRole("APPROVER") || User.IsInRole("SENIOR_APPROVER") || User.IsInRole("REVIEWER");
+            var canReview = canApprove || User.IsInRole("OFFICER") || User.IsInRole("RECEIVER") || User.IsInRole("PROCESSOR");
             if ((action is "APPROVE" or "REJECT") && !canApprove || (action is "PASS" or "REQUEST_INFO") && !canReview)
                 return Forbid();
 
@@ -354,6 +372,8 @@ namespace QLNT_TKYC.API.Controllers
                 string decision;
                 string notifTitle;
                 string notifMessage;
+
+                var oldStatus = registration.Status;
 
                 if (action == "APPROVE")
                 {
@@ -386,10 +406,27 @@ namespace QLNT_TKYC.API.Controllers
                 }
                 else if (action == "REQUEST_INFO")
                 {
-                    newStatus = "NEED_MORE_INFO";
-                    decision = "NEED_MORE_INFO";
-                    notifTitle = "Yêu cầu bổ sung hồ sơ ngoại trú";
-                    notifMessage = $"Cán bộ yêu cầu bạn bổ sung/chỉnh sửa giấy tờ cho hồ sơ {registration.RegistrationCode}. Lý do: {dto.Note}";
+                    // Kiểm tra số lần yêu cầu bổ sung theo quy tắc nghiệp vụ (giới hạn tối đa 3 lần)
+                    int priorCount = await _context.Approvals
+                        .CountAsync(a => a.RegistrationId == registration.RegistrationId && a.Decision == "NEED_MORE_INFO");
+
+                    if (priorCount >= 3)
+                    {
+                        action = "REJECT";
+                        newStatus = "REJECTED";
+                        decision = "REJECTED";
+                        registration.RejectedAt = DateTime.Now;
+                        registration.RejectionReason = "MAX_SUPPLEMENT_LIMIT_EXCEEDED: Vượt quá giới hạn 3 lần yêu cầu bổ sung theo quy chế.";
+                        notifTitle = "Hồ sơ ngoại trú bị từ chối do quá số lần bổ sung";
+                        notifMessage = $"Hồ sơ {registration.RegistrationCode} của bạn đã bị từ chối do đã yêu cầu bổ sung quá 3 lần.";
+                    }
+                    else
+                    {
+                        newStatus = "NEED_MORE_INFO";
+                        decision = "NEED_MORE_INFO";
+                        notifTitle = "Yêu cầu bổ sung hồ sơ ngoại trú";
+                        notifMessage = $"Cán bộ yêu cầu bạn bổ sung/chỉnh sửa giấy tờ cho hồ sơ {registration.RegistrationCode} (Lần {priorCount + 1}/3). Lý do: {dto.Note}";
+                    }
                 }
                 else // REJECT
                 {
@@ -448,6 +485,18 @@ namespace QLNT_TKYC.API.Controllers
                     sla.CompletedAt = DateTime.Now;
                 }
 
+                // 4. Ghi nhận AuditLog
+                await _auditLog.LogAsync(
+                    userId: approverId,
+                    action: action == "APPROVE" ? "APPROVE_REGISTRATION" : (action == "PASS" ? "PASS_REGISTRATION" : (action == "REQUEST_INFO" ? "REQUEST_INFO" : "REJECT_REGISTRATION")),
+                    entityType: "REGISTRATION",
+                    entityId: registration.RegistrationId,
+                    oldValue: oldStatus,
+                    newValue: newStatus,
+                    reason: dto.Note ?? decision,
+                    source: "OFFICER_PORTAL"
+                );
+
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
@@ -504,6 +553,106 @@ namespace QLNT_TKYC.API.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        // =====================================================
+        // POST: api/Registration/1/withdraw
+        // Sinh viên rút hồ sơ ngoại trú (chỉ áp dụng cho DRAFT, SUBMITTED, NEED_MORE_INFO)
+        // =====================================================
+        [HttpPost("{id:long}/withdraw")]
+        [Authorize(Roles = "STUDENT,ADMIN")]
+        public async Task<IActionResult> WithdrawRegistration(long id)
+        {
+            var registration = await _context.Registrations
+                .Include(r => r.Student)
+                .Include(r => r.SlaTrackings)
+                .FirstOrDefaultAsync(r => r.RegistrationId == id);
+
+            if (registration == null)
+            {
+                return NotFound(new { message = "Không tìm thấy hồ sơ đăng ký.", registrationId = id });
+            }
+
+            if (!await _accessControl.CanAccessRegistrationAsync(User, id))
+                return Forbid();
+
+            if (registration.Status == "ACTIVE" || registration.Status == "APPROVED")
+            {
+                return BadRequest(new
+                {
+                    message = "Hồ sơ ngoại trú của bạn đã có hiệu lực (ACTIVE/APPROVED). Để kết thúc nơi ở, vui lòng tạo 'Yêu cầu kết thúc ngoại trú' thay vì rút hồ sơ.",
+                    status = registration.Status
+                });
+            }
+
+            if (registration.Status != "SUBMITTED" && registration.Status != "DRAFT" && registration.Status != "NEED_MORE_INFO")
+            {
+                return BadRequest(new
+                {
+                    message = $"Hồ sơ đang ở trạng thái {registration.Status}, không thể thực hiện thao tác rút hồ sơ.",
+                    status = registration.Status
+                });
+            }
+
+            var username = User.Identity?.Name;
+            var currentUser = string.IsNullOrWhiteSpace(username)
+                ? null
+                : await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var oldStatus = registration.Status;
+                registration.Status = "WITHDRAWN";
+                registration.UpdatedAt = DateTime.Now;
+
+                // Hủy SLA tracking đang chạy
+                foreach (var sla in registration.SlaTrackings.Where(s => s.Status == "IN_PROGRESS"))
+                {
+                    sla.Status = "CANCELLED";
+                    sla.CompletedAt = DateTime.Now;
+                }
+
+                // Ghi nhận AuditLog
+                await _auditLog.LogAsync(
+                    userId: currentUser?.UserId,
+                    action: "WITHDRAW_REGISTRATION",
+                    entityType: "REGISTRATION",
+                    entityId: registration.RegistrationId,
+                    oldValue: oldStatus,
+                    newValue: "WITHDRAWN",
+                    reason: "Sinh viên chủ động rút hồ sơ",
+                    source: "STUDENT_PORTAL"
+                );
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return Ok(new
+                {
+                    message = "Đã rút hồ sơ thành công.",
+                    registrationId = registration.RegistrationId,
+                    status = registration.Status
+                });
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        // =====================================================
+        // POST: api/Registration/trigger-expiration-scan
+        // Kích hoạt quét tự động hồ sơ hết hạn và SLA quá hạn
+        // =====================================================
+        [HttpPost("trigger-expiration-scan")]
+        [Authorize(Roles = "ADMIN,OFFICER,REVIEWER,APPROVER")]
+        public async Task<IActionResult> TriggerExpirationScan(
+            [FromServices] QLNT_TKYC.API.Services.Interfaces.ISystemSchedulerService scheduler)
+        {
+            var result = await scheduler.RunScheduledTasksAsync();
+            return Ok(result);
         }
 
         // =====================================================

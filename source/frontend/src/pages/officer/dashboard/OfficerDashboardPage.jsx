@@ -73,26 +73,26 @@ export default function OfficerDashboardPage() {
     }
   };
 
-  // 1. Phê duyệt chính thức cấp trường (APPROVE)
-  const handleApprove = async (reg, note) => {
+  // 1. Tiếp nhận và chuyển chuyên viên thẩm định (PASS)
+  const handlePass = async (reg, note) => {
     try {
       setSubmitting(true);
       const user = authService.getCurrentUser();
       await officerService.processRegistration(reg.registrationId, {
-        action: 'APPROVE',
-        note: note || 'Hồ sơ đạt chuẩn quy định, Cán bộ Quản lý phê duyệt chính thức.',
+        action: 'PASS',
+        note: note || 'Cán bộ tiếp nhận đã kiểm tra sơ bộ đạt yêu cầu, chuyển chuyên viên thẩm định.',
         approverId: user?.userId
       });
 
       setMessage({ 
         type: 'success', 
-        text: `Đã phê duyệt chính thức hồ sơ ${reg.registrationCode || `#${reg.registrationId}`} thành công!` 
+        text: `Đã tiếp nhận và chuyển hồ sơ ${reg.registrationCode || `#${reg.registrationId}`} sang Chuyên viên thẩm định (Reviewer) thành công!` 
       });
       setShowModal(false);
       await loadData();
     } catch (err) {
-      console.error('Lỗi phê duyệt:', err);
-      alert(err?.response?.data?.message || 'Không thể phê duyệt hồ sơ.');
+      console.error('Lỗi tiếp nhận hồ sơ:', err);
+      alert(err?.response?.data?.message || 'Không thể tiếp nhận hồ sơ.');
     } finally {
       setSubmitting(false);
     }
@@ -202,7 +202,8 @@ export default function OfficerDashboardPage() {
         show={showModal}
         onHide={() => setShowModal(false)}
         registration={selectedReg}
-        onApprove={handleApprove}
+        onPass={handlePass}
+        onApprove={handlePass}
         onRequestInfo={handleRequestInfo}
         onReject={handleReject}
         submitting={submitting}
