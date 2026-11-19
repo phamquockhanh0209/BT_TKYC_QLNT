@@ -13,7 +13,7 @@ public partial class Request
 
     public long? ProcessedBy { get; set; }
 
-    public string RequestCode { get; set; } = null!;
+    public string? RequestCode { get; set; }
 
     public string RequestType { get; set; } = null!;
 

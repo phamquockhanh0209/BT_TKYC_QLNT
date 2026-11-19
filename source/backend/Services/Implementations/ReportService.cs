@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using QLNT_TKYC.API.Data;
 using QLNT_TKYC.API.DTOs.Report;
 using QLNT_TKYC.API.Services.Interfaces;
@@ -145,7 +145,7 @@ public class ReportService : IReportService
         double averageProcessingHours = 0;
         if (completedSlas.Any())
         {
-            var totalHours = completedSlas.Sum(s => (s.CompletedAt.Value - s.StartedAt).TotalHours);
+            var totalHours = completedSlas.Sum(s => (s.CompletedAt!.Value - s.StartedAt).TotalHours);
             averageProcessingHours = Math.Round(totalHours / completedSlas.Count, 2);
         }
 

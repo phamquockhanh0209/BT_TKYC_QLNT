@@ -79,5 +79,18 @@ namespace QLNT_TKYC.API.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        // =====================================================
+        // POST: api/SlaTracking/trigger-scan
+        // Kích hoạt thủ công tác vụ quét SLA quá hạn, hồ sơ hết hạn và gửi nhắc nhở
+        // =====================================================
+        [HttpPost("trigger-scan")]
+        [Authorize(Roles = "ADMIN,OFFICER,REVIEWER,APPROVER")]
+        public async Task<IActionResult> TriggerScheduledScan(
+            [FromServices] QLNT_TKYC.API.Services.Interfaces.ISystemSchedulerService scheduler)
+        {
+            var result = await scheduler.RunScheduledTasksAsync();
+            return Ok(result);
+        }
     }
 }
